@@ -689,21 +689,38 @@ function finishSession() {
   renderTodaySessions();
 }
 
-// ── Distraction Detection: bare, immediate, no wrappers ──
+// ── Service Worker registration ──
+var swRegistration = null;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/-Have-You-Studied-/sw.js')
+    .then(function(reg) { swRegistration = reg; })
+    .catch(function() { /* SW not available, fall back to direct Notification */ });
+}
+
+// ── Distraction Detection ──
 function doDistractionAlert() {
   if (!timerRunning) return;
-  if (document.hidden === false && document.hasFocus()) return; // false alarm
+  if (!document.hidden && document.hasFocus()) return;
   distractionCount++;
+  var s = (distractionCount > 1) ? 's' : '';
   var w = document.getElementById('distractionWarn');
   w.classList.add('show');
   w.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
+
+  // Use Service Worker if available (works in background), fall back to direct
   if (Notification.permission === 'granted') {
-    new Notification('⚠️ Focus Break! — 学了吗', {
-      body: 'Come back and focus! ('+distractionCount+' time'+(distractionCount>1?'s':'')+') 🎯',
+    var opts = {
+      body: 'Come back and focus! ('+distractionCount+' time'+s+') 🎯',
       requireInteraction: true,
       tag: 'distraction'
-    });
+    };
+    if (swRegistration) {
+      swRegistration.showNotification('⚠️ Focus Break! — 学了吗', opts);
+    } else {
+      new Notification('⚠️ Focus Break! — 学了吗', opts);
+    }
   }
+
   if (!window._flashInterval) {
     var orig = document.title, on = true;
     window._flashInterval = setInterval(function() {
@@ -716,15 +733,12 @@ function doDistractionAlert() {
     }, 6000);
   }
 }
-// Both tab-switch AND app-switch
+
 document.addEventListener('visibilitychange', function() {
   if (timerRunning && document.hidden) doDistractionAlert();
 });
 window.addEventListener('blur', function() {
-  // blur fires when clicking away — slight delay to check if page actually hidden
-  setTimeout(function() {
-    if (timerRunning && (document.hidden || !document.hasFocus())) doDistractionAlert();
-  }, 100);
+  if (timerRunning) doDistractionAlert();
 });
 
 // Fallback: every timer tick also checks (runs slower in background)
