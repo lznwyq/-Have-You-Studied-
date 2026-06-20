@@ -900,9 +900,13 @@ var DEFAULT_RESOURCES = [
 // RESOURCES (Search + Recommend + My)
 // ═══════════════════════════════════════
 function ensureDefaultResources() {
-  if (!userLoad('defaultsAdded', false)) {
-    resources = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
-    userSave('defaultsAdded', true);
+  var ver = userLoad('resVersion', 0);
+  if (ver < 2) {
+    // Keep user-added resources (non-default IDs > 20000), replace defaults
+    var userAdded = resources.filter(function(r){ return r.id >= 20000; });
+    var newDefaults = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
+    resources = newDefaults.concat(userAdded);
+    userSave('resVersion', 2);
     saveAllUserData();
   }
 }
