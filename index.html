@@ -689,26 +689,19 @@ function finishSession() {
   renderTodaySessions();
 }
 
-// ── Distraction Detection: built into timer tick, runs every 3s ──
-var lastDistractionCheck = 0;
-function checkDistraction() {
-  var now = Date.now();
-  if (now - lastDistractionCheck < 3000) return;
-  lastDistractionCheck = now;
-
+// ── Distraction Detection ──
+// Strategy: event-driven (immediate) + polling (backup when tab is backgrounded)
+function fireDistractionNotification() {
   if (!timerRunning) return;
-  if (!document.hidden && document.hasFocus()) return; // user is here, all good
-
-  // User is away — sound the alarm
   distractionCount++;
   var s = (distractionCount > 1) ? 's' : '';
 
-  // In-page warning (visible when they come back)
+  // In-page warning
   var warnEl = document.getElementById('distractionWarn');
   warnEl.classList.add('show');
-  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page! ('+distractionCount+' time'+s+')';
+  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
 
-  // Desktop notification — pops up wherever you are
+  // Desktop notification — fires NOW before Chrome throttles the tab
   if (Notification.permission === 'granted') {
     new Notification('⚠️ Focus Break! — 学了吗', {
       body: 'Come back and focus! ('+distractionCount+' time'+s+') 🎯',
@@ -717,7 +710,7 @@ function checkDistraction() {
     });
   }
 
-  // Flash tab title so you notice when you glance at the browser
+  // Flash title
   if (!window._flashInterval) {
     var orig = document.title, on = true;
     window._flashInterval = setInterval(function() {
@@ -730,6 +723,26 @@ function checkDistraction() {
       document.title = orig;
     }, 6000);
   }
+}
+
+// IMMEDIATE trigger when tab loses visibility or focus
+document.addEventListener('visibilitychange', function() {
+  if (timerRunning && document.hidden) fireDistractionNotification();
+});
+window.addEventListener('blur', function() {
+  if (timerRunning) fireDistractionNotification();
+});
+window.addEventListener('pagehide', function() {
+  if (timerRunning) fireDistractionNotification();
+});
+
+// Backup polling inside timer tick (handles edge cases, throttled by Chrome)
+var lastDistractionCheck = 0;
+function checkDistraction() {
+  var now = Date.now();
+  if (now - lastDistractionCheck < 5000) return;
+  lastDistractionCheck = now;
+  if (timerRunning && document.hidden) fireDistractionNotification();
 }
 
 function renderTodaySessions() {
