@@ -1054,7 +1054,7 @@ function renderMyResources() {
     return;
   }
   list.innerHTML = filtered.map(function(r) {
-    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.cat+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 打开</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
+    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.category+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 打开</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
   }).join('');
 
   // Trash
@@ -1063,7 +1063,7 @@ function renderMyResources() {
   if (trashBin.length > 0) {
     tc.style.display = 'block';
     tl.innerHTML = trashBin.map(function(r) {
-      return '<li style="opacity:0.6;"><div><span class="rtitle" style="text-decoration:line-through;">'+r.title+'</span> <span class="rcat">'+r.cat+'</span></div><button class="btn btn-accent btn-sm" onclick="restoreResource('+r.id+')">↩ 恢复</button></li>';
+      return '<li style="opacity:0.6;"><div><span class="rtitle" style="text-decoration:line-through;">'+r.title+'</span> <span class="rcat">'+r.category+'</span></div><button class="btn btn-accent btn-sm" onclick="restoreResource('+r.id+')">↩ 恢复</button></li>';
     }).join('');
   } else {
     tc.style.display = 'none';
