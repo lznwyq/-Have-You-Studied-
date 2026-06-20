@@ -831,6 +831,8 @@ function renderReminders() {
 function checkReminders() {
   var now = new Date();
   var ct = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  // 1. Check reminders
   reminders.forEach(function(r) {
     if (!r.enabled) return;
     if (r.time === ct && reminderFiredToday[r.id] !== ct) {
@@ -847,6 +849,19 @@ function checkReminders() {
     }
   });
   updateMissedBadge();
+
+  // 2. Check distraction — same interval, same reliable path
+  if (timerRunning && (document.hidden || !document.hasFocus())) {
+    distractionCount++;
+    if (Notification.permission === 'granted') {
+      new Notification('⚠️ Focus Break! — 学了吗', {
+        body: 'Come back and focus! ('+distractionCount+' time'+(distractionCount>1?'s':'')+') 🎯',
+        requireInteraction: true,
+        tag: 'distraction'
+      });
+    }
+  }
+
   saveAllUserData();
 }
 setInterval(checkReminders, 10000);
