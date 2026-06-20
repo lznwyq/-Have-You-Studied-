@@ -707,12 +707,11 @@ function doDistractionAlert() {
   w.classList.add('show');
   w.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
 
-  // Use Service Worker if available (works in background), fall back to direct
+  // Notification — unique tag each time so every alert fires
   if (Notification.permission === 'granted') {
     var opts = {
       body: 'Come back and focus! ('+distractionCount+' time'+s+') 🎯',
-      requireInteraction: true,
-      tag: 'distraction'
+      tag: 'distraction-' + Date.now()  // unique tag → never suppressed
     };
     if (swRegistration) {
       swRegistration.showNotification('⚠️ Focus Break! — 学了吗', opts);
