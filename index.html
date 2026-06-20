@@ -557,7 +557,7 @@ function refreshDashboard() {
 // ═══════════════════════════════════════
 var timerMinutes = 25, timerSeconds = 0, timerInterval = null;
 var timerRunning = false, isBreak = false, focusStartTime = null;
-var distractionCount = 0, distractionWarnTimer = null;
+var distractionCount = 0;
 
 (function bindPresets() {
   document.querySelectorAll('.focus-preset button').forEach(function(btn) {
@@ -623,8 +623,8 @@ function startTimer() {
     if (timerSeconds === 0) { timerMinutes--; timerSeconds = 59; }
     else { timerSeconds--; }
     updateTimerDisplay();
+    checkDistraction(); // ← built into every tick, cannot miss
   }, 1000);
-  startDistractionPoll();
 }
 
 function pauseTimer() {
@@ -632,13 +632,13 @@ function pauseTimer() {
   logStudyMinutes(elapsedMin);
   timerRunning = false;
   clearInterval(timerInterval); timerInterval = null;
-  clearTimeout(distractionWarnTimer);
+
   document.getElementById('timerCircle').classList.remove('running');
   document.getElementById('timerLabel').textContent = elapsedMin > 0 ? 'Paused — +'+elapsedMin+' min logged! ✅' : 'Paused (< 1 min)';
   document.getElementById('btnStart').textContent = '▶ Resume';
   document.getElementById('btnStart').className = 'btn btn-primary';
   document.getElementById('distractionWarn').classList.remove('show');
-  stopDistractionPoll();
+
 }
 
 function resetTimer() {
@@ -647,7 +647,7 @@ function resetTimer() {
     logStudyMinutes(elapsedMin);
   }
   clearInterval(timerInterval); timerInterval = null;
-  clearTimeout(distractionWarnTimer);
+
   timerRunning = false; isBreak = false; focusStartTime = null; distractionCount = 0;
   var sel = document.querySelector('.focus-preset button.selected');
   timerMinutes = sel ? parseInt(sel.dataset.min) : 25;
@@ -658,7 +658,7 @@ function resetTimer() {
   document.getElementById('btnStart').textContent = '▶ Start';
   document.getElementById('btnStart').className = 'btn btn-primary';
   document.getElementById('distractionWarn').classList.remove('show');
-  stopDistractionPoll();
+
 }
 
 function finishSession() {
@@ -674,9 +674,9 @@ function finishSession() {
   document.getElementById('btnStart').textContent = '▶ Start Break';
   document.getElementById('btnStart').className = 'btn btn-primary';
   timerRunning = false;
-  clearTimeout(distractionWarnTimer);
+
   document.getElementById('distractionWarn').classList.remove('show');
-  stopDistractionPoll();
+
 
   if (Notification.permission === 'granted') {
     new Notification('🎉 Session Complete! — 学了吗', {
@@ -689,52 +689,47 @@ function finishSession() {
   renderTodaySessions();
 }
 
-// Desktop distraction notification
-function triggerDistractionWarn() {
+// ── Distraction Detection: built into timer tick, runs every 3s ──
+var lastDistractionCheck = 0;
+function checkDistraction() {
+  var now = Date.now();
+  if (now - lastDistractionCheck < 3000) return;
+  lastDistractionCheck = now;
+
   if (!timerRunning) return;
+  if (!document.hidden && document.hasFocus()) return; // user is here, all good
+
+  // User is away — sound the alarm
   distractionCount++;
+  var s = (distractionCount > 1) ? 's' : '';
+
+  // In-page warning (visible when they come back)
   var warnEl = document.getElementById('distractionWarn');
   warnEl.classList.add('show');
-  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
-  clearTimeout(distractionWarnTimer);
-  distractionWarnTimer = setTimeout(function(){ warnEl.classList.remove('show'); }, 10000);
+  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page! ('+distractionCount+' time'+s+')';
 
+  // Desktop notification — pops up wherever you are
   if (Notification.permission === 'granted') {
     new Notification('⚠️ Focus Break! — 学了吗', {
-      body: 'You left the study page! ('+distractionCount+' time'+(distractionCount>1?'s':'')+')\nCome back and focus! 🎯',
+      body: 'Come back and focus! ('+distractionCount+' time'+s+') 🎯',
       requireInteraction: true,
       tag: 'distraction'
     });
   }
 
-  // Flash title
-  var orig = document.title, flashOn = true;
-  var fi = setInterval(function() {
-    document.title = flashOn ? '⚠️ COME BACK! — 学了吗' : orig;
-    flashOn = !flashOn;
-  }, 800);
-  setTimeout(function(){ clearInterval(fi); document.title = orig; }, 6000);
-}
-
-// ── Distraction Detection: event + polling (double insurance) ──
-document.addEventListener('visibilitychange', function() {
-  if (timerRunning && document.hidden) triggerDistractionWarn();
-});
-window.addEventListener('blur', function() {
-  if (timerRunning) triggerDistractionWarn();
-});
-// Polling: check every 2 seconds whether user left — catches edge cases
-var distractionPoll = null;
-function startDistractionPoll() {
-  stopDistractionPoll();
-  distractionPoll = setInterval(function() {
-    if (timerRunning && (document.hidden || !document.hasFocus())) {
-      triggerDistractionWarn();
-    }
-  }, 3000);
-}
-function stopDistractionPoll() {
-  if (distractionPoll) { clearInterval(distractionPoll); distractionPoll = null; }
+  // Flash tab title so you notice when you glance at the browser
+  if (!window._flashInterval) {
+    var orig = document.title, on = true;
+    window._flashInterval = setInterval(function() {
+      document.title = on ? '⚠️ COME BACK! — 学了吗' : orig;
+      on = !on;
+    }, 800);
+    setTimeout(function() {
+      clearInterval(window._flashInterval);
+      window._flashInterval = null;
+      document.title = orig;
+    }, 6000);
+  }
 }
 
 function renderTodaySessions() {
