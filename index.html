@@ -819,7 +819,7 @@ var BUILTIN_DB = [
   // 📐 数学学习
   {title:'宋浩老师B站主页 — 高数/线代/概率', link:'https://space.bilibili.com/66607740', cat:'📖 课程学习'},
   {title:'3Blue1Brown 线性代数本质（中文）', link:'https://space.bilibili.com/88461692', cat:'📖 课程学习'},
-  {title:'同济《高等数学》第七版习题答案', link:'https://www.doc88.com/p-99827367251112.html', cat:'📖 课程学习'},
+  {title:'同济《高等数学》第七版课后答案（GitHub开源）', link:'https://github.com/cleveHE/Advanced-Math-7th-Edition-Tongji', cat:'📖 课程学习'},
   {title:'Wolfram Alpha — 数学公式求解', link:'https://www.wolframalpha.com/', cat:'📖 课程学习'},
   {title:'Desmos — 在线函数图像绘制', link:'https://www.desmos.com/', cat:'📖 课程学习'},
   {title:'GeoGebra — 交互式几何代数工具', link:'https://www.geogebra.org/', cat:'📖 课程学习'},
@@ -843,7 +843,7 @@ var BUILTIN_DB = [
   {title:'Regex101 — 正则表达式测试', link:'https://regex101.com/', cat:'📝 刷题练习'},
 
   // 🇬🇧 英语能力
-  {title:'四六级官网 — 历年真题与报名', link:'https://cet.neea.edu.cn/', cat:'📖 课程学习'},
+  {title:'四六级真题在线 — 近十年真题+听力下载', link:'https://zhenti.burningvocabulary.cn/', cat:'📝 刷题练习'},
   {title:'每日英语听力 — VOA/BBC/CNN', link:'https://www.eudic.net/', cat:'📖 课程学习'},
   {title:'BBC Learning English — 6分钟英语', link:'https://www.bbc.co.uk/learningenglish/', cat:'📖 课程学习'},
   {title:'百词斩 — 四六级考研背单词', link:'https://www.baicizhan.com/', cat:'📖 课程学习'},
@@ -870,7 +870,7 @@ var BUILTIN_DB = [
   // 📝 刷题考试
   {title:'赛码 — 编程竞赛在线平台', link:'https://www.acmcoder.com/', cat:'📝 刷题练习'},
   {title:'考试资料网 — 各科期末真题', link:'https://www.ppkao.com/', cat:'📝 刷题练习'},
-  {title:'全国计算机等级考试官网', link:'https://ncre.neea.edu.cn/', cat:'📝 刷题练习'},
+  {title:'计算机二级题库 — 未来教育真题系统', link:'https://www.eduexam.cn/', cat:'📝 刷题练习'},
   {title:'考研网 — 考研资料与经验', link:'https://www.kaoyan.com/', cat:'📝 刷题练习'},
   {title:'赛氪 — 大学生竞赛活动平台', link:'https://www.saikr.com/', cat:'📝 刷题练习'},
   {title:'VisuAlgo — 算法交互可视化', link:'https://visualgo.net/zh', cat:'📝 刷题练习'},
@@ -901,7 +901,7 @@ var BUILTIN_DB = [
 var DEFAULT_RESOURCES = [
   {id:10001, title:'中国大学MOOC', link:'https://www.icourse163.org/', category:'📖 课程学习', added:''},
   {id:10002, title:'B站宋浩老师高数', link:'https://space.bilibili.com/66607740', category:'📖 课程学习', added:''},
-  {id:10003, title:'四六级历年真题', link:'https://cet.neea.edu.cn/', category:'📚 资料查阅', added:''},
+  {id:10003, title:'四六级真题在线刷题', link:'https://zhenti.burningvocabulary.cn/', category:'📝 刷题练习', added:''},
   {id:10004, title:'LeetCode 中国刷题', link:'https://leetcode.cn/', category:'📝 刷题练习', added:''},
   {id:10005, title:'每日英语听力', link:'https://www.eudic.net/', category:'📖 课程学习', added:''},
   {id:10006, title:'DeepL学术翻译', link:'https://www.deepl.com/translator', category:'🛠️ 效率工具', added:''},
@@ -914,12 +914,12 @@ var DEFAULT_RESOURCES = [
 // ═══════════════════════════════════════
 function ensureDefaultResources() {
   var ver = userLoad('resVersion', 0);
-  if (ver < 5) {
+  if (ver < 6) {
     // Keep user-added resources (non-default IDs > 20000), replace defaults
     var userAdded = resources.filter(function(r){ return r.id >= 20000; });
     var newDefaults = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
     resources = newDefaults.concat(userAdded);
-    userSave('resVersion', 5);
+    userSave('resVersion', 6);
     saveAllUserData();
   }
 }
