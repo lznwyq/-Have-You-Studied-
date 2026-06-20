@@ -257,11 +257,11 @@
     <div class="tab-panel" id="tab-resources">
       <!-- Search -->
       <div class="card">
-        <h3>🔍 Find Resources</h3>
+        <h3>🔍 搜索资源</h3>
         <div class="res-form">
-          <input type="text" id="resSearch" placeholder="Search: math, English, Python, physics..."
+          <input type="text" id="resSearch" placeholder="搜索：高数、四六级、Python、电路..."
                  onkeydown="if(event.key==='Enter')searchResources()">
-          <button class="btn btn-primary" onclick="searchResources()">Search</button>
+          <button class="btn btn-primary" onclick="searchResources()">搜索</button>
         </div>
         <div id="searchResults" style="display:none;margin-top:16px;"></div>
       </div>
@@ -269,8 +269,8 @@
       <!-- Recommended (refreshes) -->
       <div class="card">
         <div class="section-header">
-          <h3 style="margin-bottom:0;">🌟 Recommended for You</h3>
-          <button class="btn btn-accent btn-sm" onclick="refreshRecommend()">🔄 Refresh</button>
+          <h3 style="margin-bottom:0;">🌟 为你推荐</h3>
+          <button class="btn btn-accent btn-sm" onclick="refreshRecommend()">🔄 换一批</button>
         </div>
         <div id="recommendList" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
       </div>
@@ -278,10 +278,10 @@
       <!-- My Resources -->
       <div class="card">
         <div class="section-header">
-          <h3 style="margin-bottom:0;">📚 My Resources</h3>
+          <h3 style="margin-bottom:0;">📚 我的资源</h3>
           <div style="display:flex;gap:8px;align-items:center;">
             <select id="filterCategory" onchange="renderMyResources()" style="font-size:13px;">
-              <option value="all">All</option>
+              <option value="all">全部</option>
               <option value="🎥 视频课程">🎥 视频课程</option>
               <option value="📖 文档资料">📖 文档资料</option>
               <option value="🛠️ 学习工具">🛠️ 学习工具</option>
@@ -290,13 +290,13 @@
               <option value="🖼️ 图解资源">🖼️ 图解资源</option>
               <option value="📱 小程序">📱 小程序</option>
             </select>
-            <button class="btn btn-primary btn-sm" onclick="showAddForm()">+ Add</button>
+            <button class="btn btn-primary btn-sm" onclick="showAddForm()">+ 添加</button>
           </div>
         </div>
         <div id="addForm" style="display:none;margin-bottom:16px;padding:16px;background:#f8fafa;border-radius:12px;">
           <div class="res-form">
-            <input type="text" id="resTitle" placeholder="Resource name">
-            <input type="url" id="resLink" placeholder="URL (https://...)">
+            <input type="text" id="resTitle" placeholder="资源名称">
+            <input type="url" id="resLink" placeholder="链接 (https://...)">
             <select id="resCategory">
               <option value="🎥 视频课程">🎥 视频课程</option>
               <option value="📖 文档资料">📖 文档资料</option>
@@ -306,8 +306,8 @@
               <option value="🖼️ 图解资源">🖼️ 图解资源</option>
               <option value="📱 小程序">📱 小程序</option>
             </select>
-            <button class="btn btn-primary btn-sm" onclick="addResource()">Save</button>
-            <button class="btn btn-outline btn-sm" onclick="document.getElementById('addForm').style.display='none'">Cancel</button>
+            <button class="btn btn-primary btn-sm" onclick="addResource()">保存</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('addForm').style.display='none'">取消</button>
           </div>
         </div>
         <ul class="res-list" id="resList"></ul>
@@ -916,7 +916,7 @@ function addResource() {
   var title = document.getElementById('resTitle').value.trim();
   var link  = document.getElementById('resLink').value.trim();
   var cat   = document.getElementById('resCategory').value;
-  if (!title || !link) { alert('Please fill in both title and URL.'); return; }
+  if (!title || !link) { alert('请填写资源名称和链接'); return; }
   resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
   saveAllUserData();
   document.getElementById('resTitle').value = '';
@@ -929,7 +929,7 @@ function addResource() {
 function addFromSearch(title, link, cat) {
   // Check duplicate
   var dup = resources.some(function(r){ return r.link === link; });
-  if (dup) { alert('Already in your resources!'); return; }
+  if (dup) { alert('已经在你的资源里了！'); return; }
   resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
   saveAllUserData();
   renderMyResources();
@@ -937,13 +937,13 @@ function addFromSearch(title, link, cat) {
   // Visual feedback — find the button and change it
   var btns = document.querySelectorAll('.add-from-search');
   btns.forEach(function(b){
-    if (b.dataset.link === link) { b.textContent = '✓ Added'; b.className = 'btn btn-sm'; b.style.background='#d4edda'; b.style.color='#155724'; b.disabled = true; }
+    if (b.dataset.link === link) { b.textContent = '✓ 已收藏'; b.className = 'btn btn-sm'; b.style.background='#d4edda'; b.style.color='#155724'; b.disabled = true; }
   });
 }
 
 function copyFromRecommend(title, link, cat) {
   var dup = resources.some(function(r){ return r.link === link; });
-  if (dup) { alert('Already in your resources!'); return; }
+  if (dup) { alert('已经在你的资源里了！'); return; }
   resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
   saveAllUserData();
   renderMyResources();
@@ -966,17 +966,17 @@ function searchResources() {
   }).slice(0, 12);
   div.style.display = 'block';
   if (!results.length) {
-    div.innerHTML = '<div class="empty-state"><div class="eicon">🔍</div><p>No results for "'+q+'". Try a different keyword.</p></div>';
+    div.innerHTML = '<div class="empty-state"><div class="eicon">🔍</div><p>没找到 "'+q+'" 相关资源，换个关键词试试</p></div>';
     return;
   }
-  div.innerHTML = '<h4 style="color:var(--teal-dark);margin-bottom:12px;">Found '+results.length+' result(s) for "'+q+'"</h4>' +
+  div.innerHTML = '<h4 style="color:var(--teal-dark);margin-bottom:12px;">找到 '+results.length+' 条关于 "'+q+'" 的结果</h4>' +
     results.map(function(r){
       var has = resources.some(function(my){ return my.link === r.link; });
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f8fafa;border-radius:10px;margin-bottom:6px;gap:10px;">'+
         '<div><strong style="color:var(--teal-dark);">'+r.title+'</strong> <span class="rcat">'+r.cat+'</span></div>'+
         '<div style="display:flex;gap:8px;flex-shrink:0;">'+
           '<a href="'+r.link+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm">🔗</a>'+
-          (has ? '<span style="font-size:12px;color:var(--teal-light);">✓ Saved</span>' : '<button class="btn btn-accent btn-sm add-from-search" data-link="'+r.link+'" onclick="addFromSearch(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ Add</button>')+
+          (has ? '<span style="font-size:12px;color:var(--teal-light);">✓ 已收藏</span>' : '<button class="btn btn-accent btn-sm add-from-search" data-link="'+r.link+'" onclick="addFromSearch(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ 收藏</button>')+
         '</div></div>';
     }).join('');
 }
@@ -994,7 +994,7 @@ function refreshRecommend() {
   var picks = pool.slice(0, 6);
   var div = document.getElementById('recommendList');
   if (!picks.length) {
-    div.innerHTML = '<p style="color:var(--gray);font-size:14px;">You\'ve saved all our recommendations! 🎉</p>';
+    div.innerHTML = '<p style="color:var(--gray);font-size:14px;">你已经收藏了所有推荐资源！🎉</p>';
     return;
   }
   div.innerHTML = picks.map(function(r){
@@ -1002,8 +1002,8 @@ function refreshRecommend() {
       '<div><strong style="color:var(--teal-dark);font-size:14px;">'+r.title+'</strong><br>'+
       '<span class="rcat" style="font-size:10px;">'+r.cat+'</span></div>'+
       '<div style="display:flex;gap:6px;margin-top:10px;">'+
-        '<a href="'+r.link+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;text-align:center;">Open</a>'+
-        '<button class="btn btn-accent btn-sm" style="flex:1;" onclick="copyFromRecommend(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ Add</button>'+
+        '<a href="'+r.link+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;text-align:center;">打开</a>'+
+        '<button class="btn btn-accent btn-sm" style="flex:1;" onclick="copyFromRecommend(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ 收藏</button>'+
       '</div></div>';
   }).join('');
 }
@@ -1013,11 +1013,11 @@ function renderMyResources() {
   var filtered = filter === 'all' ? resources : resources.filter(function(r){ return r.category === filter; });
   var list = document.getElementById('resList');
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>No resources yet. Search above or check recommendations!</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>还没有资源，去上面搜索或查看推荐吧！</p></div>';
     return;
   }
   list.innerHTML = filtered.map(function(r) {
-    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.cat+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 Open</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
+    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.cat+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 打开</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
   }).join('');
 }
 
