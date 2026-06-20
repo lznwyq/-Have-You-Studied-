@@ -280,15 +280,17 @@
         <div class="section-header">
           <h3 style="margin-bottom:0;">📚 我的资源</h3>
           <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="myResSearch" placeholder="🔍 搜索我的资源..." oninput="renderMyResources()"
+                   style="width:180px;padding:6px 12px;font-size:13px;">
             <select id="filterCategory" onchange="renderMyResources()" style="font-size:13px;">
               <option value="all">全部</option>
-              <option value="🎥 视频课程">🎥 视频课程</option>
-              <option value="📖 文档资料">📖 文档资料</option>
-              <option value="🛠️ 学习工具">🛠️ 学习工具</option>
-              <option value="📝 刷题题库">📝 刷题题库</option>
-              <option value="🎧 音频资源">🎧 音频资源</option>
-              <option value="🖼️ 图解资源">🖼️ 图解资源</option>
-              <option value="📱 小程序">📱 小程序</option>
+              <option value="📐 数学学习">📐 数学学习</option>
+              <option value="💻 编程开发">💻 编程开发</option>
+              <option value="🇬🇧 英语能力">🇬🇧 英语能力</option>
+              <option value="📖 课程辅修">📖 课程辅修</option>
+              <option value="📝 刷题考试">📝 刷题考试</option>
+              <option value="🛠️ 效率工具">🛠️ 效率工具</option>
+              <option value="🎓 论文科研">🎓 论文科研</option>
             </select>
             <button class="btn btn-primary btn-sm" onclick="showAddForm()">+ 添加</button>
           </div>
@@ -298,13 +300,13 @@
             <input type="text" id="resTitle" placeholder="资源名称">
             <input type="url" id="resLink" placeholder="链接 (https://...)">
             <select id="resCategory">
-              <option value="🎥 视频课程">🎥 视频课程</option>
-              <option value="📖 文档资料">📖 文档资料</option>
-              <option value="🛠️ 学习工具">🛠️ 学习工具</option>
-              <option value="📝 刷题题库">📝 刷题题库</option>
-              <option value="🎧 音频资源">🎧 音频资源</option>
-              <option value="🖼️ 图解资源">🖼️ 图解资源</option>
-              <option value="📱 小程序">📱 小程序</option>
+              <option value="📐 数学学习">📐 数学学习</option>
+              <option value="💻 编程开发">💻 编程开发</option>
+              <option value="🇬🇧 英语能力">🇬🇧 英语能力</option>
+              <option value="📖 课程辅修">📖 课程辅修</option>
+              <option value="📝 刷题考试">📝 刷题考试</option>
+              <option value="🛠️ 效率工具">🛠️ 效率工具</option>
+              <option value="🎓 论文科研">🎓 论文科研</option>
             </select>
             <button class="btn btn-primary btn-sm" onclick="addResource()">保存</button>
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('addForm').style.display='none'">取消</button>
@@ -820,91 +822,97 @@ function renderTodaySessions() {
 // BUILT-IN RESOURCE DATABASE (60+)
 // ═══════════════════════════════════════
 var BUILTIN_DB = [
-  // 🎥 视频课程
-  {title:'中国大学MOOC — 国内名校课程', link:'https://www.icourse163.org/', cat:'🎥 视频课程'},
-  {title:'B站宋浩老师 — 高等数学/线性代数/概率论', link:'https://space.bilibili.com/66607740', cat:'🎥 视频课程'},
-  {title:'B站同济线性代数 — 官方完整版', link:'https://www.bilibili.com/video/BV1864y1T7Ks', cat:'🎥 视频课程'},
-  {title:'B站猴博士 — 大学物理/高数速成', link:'https://space.bilibili.com/388922443', cat:'🎥 视频课程'},
-  {title:'B站3Blue1Brown — 线性代数本质（中字）', link:'https://space.bilibili.com/88461692', cat:'🎥 视频课程'},
-  {title:'B站李永乐老师 — 物理/数学科普', link:'https://space.bilibili.com/9458053', cat:'🎥 视频课程'},
-  {title:'学堂在线 — 清华北大课程', link:'https://www.xuetangx.com/', cat:'🎥 视频课程'},
-  {title:'智慧树 — 知到在线课程平台', link:'https://www.zhihuishu.com/', cat:'🎥 视频课程'},
-  {title:'超星尔雅 — 通识课学习平台', link:'https://erya.mooc.chaoxing.com/', cat:'🎥 视频课程'},
-  {title:'CSDN 程序员视频教程', link:'https://edu.csdn.net/', cat:'🎥 视频课程'},
+  // 📐 数学学习
+  {title:'宋浩老师B站主页 — 高数/线代/概率', link:'https://space.bilibili.com/66607740', cat:'📐 数学学习'},
+  {title:'3Blue1Brown 线性代数本质（中文）', link:'https://space.bilibili.com/88461692', cat:'📐 数学学习'},
+  {title:'同济《高等数学》第七版习题答案', link:'https://www.doc88.com/p-99827367251112.html', cat:'📐 数学学习'},
+  {title:'Wolfram Alpha — 数学公式求解', link:'https://www.wolframalpha.com/', cat:'📐 数学学习'},
+  {title:'Desmos — 在线函数图像绘制', link:'https://www.desmos.com/', cat:'📐 数学学习'},
+  {title:'GeoGebra — 交互式几何代数工具', link:'https://www.geogebra.org/', cat:'📐 数学学习'},
+  {title:'Symbolab — 分步骤数学求解器', link:'https://www.symbolab.com/', cat:'📐 数学学习'},
+  {title:'Better Explained — 数学直觉理解', link:'https://betterexplained.com/', cat:'📐 数学学习'},
+  {title:'Seeing Theory — 概率统计可视化', link:'https://seeing-theory.brown.edu/', cat:'📐 数学学习'},
+  {title:'李永乐老师B站 — 物理数学科普', link:'https://space.bilibili.com/9458053', cat:'📐 数学学习'},
 
-  // 📖 文档资料
-  {title:'高数（同济第七版）课后习题答案PDF', link:'https://www.doc88.com/', cat:'📖 文档资料'},
-  {title:'线性代数（同济版）知识点总结', link:'https://wenku.baidu.com/', cat:'📖 文档资料'},
-  {title:'大学物理（马文蔚版）复习笔记', link:'https://www.docin.com/', cat:'📖 文档资料'},
-  {title:'全国大学生英语竞赛真题集', link:'https://www.saikr.com/', cat:'📖 文档资料'},
-  {title:'四六级历年真题(2015-2025)打印版', link:'https://cet.neea.edu.cn/', cat:'📖 文档资料'},
-  {title:'计算机二级Office/Python题库资料', link:'https://ncre.neea.edu.cn/', cat:'📖 文档资料'},
-  {title:'CS自学指南 — 北大信科课程攻略', link:'https://csdiy.wiki/', cat:'📖 文档资料'},
-  {title:'GitHub 中国高校课程资源共享计划', link:'https://github.com/QSCTech/zju-icicles', cat:'📖 文档资料'},
-  {title:'考研数学复习全书（张宇）电子版', link:'https://www.kaoyan.com/', cat:'📖 文档资料'},
-  {title:'学术英语写作常用句型库 — Academic Phrasebank', link:'https://www.phrasebank.manchester.ac.uk/', cat:'📖 文档资料'},
+  // 💻 编程开发
+  {title:'CS自学指南 — 北大信科课程攻略', link:'https://csdiy.wiki/', cat:'💻 编程开发'},
+  {title:'LeetCode 中国 — 算法刷题', link:'https://leetcode.cn/', cat:'💻 编程开发'},
+  {title:'牛客网 — 笔试面试真题', link:'https://www.nowcoder.com/', cat:'💻 编程开发'},
+  {title:'洛谷 — 算法竞赛社区', link:'https://www.luogu.com.cn/', cat:'💻 编程开发'},
+  {title:'PTA拼题A — 浙大程序设计题库', link:'https://pintia.cn/', cat:'💻 编程开发'},
+  {title:'GitHub — 代码托管与开源项目', link:'https://github.com/', cat:'💻 编程开发'},
+  {title:'W3Schools — Web开发教程', link:'https://www.w3schools.com/', cat:'💻 编程开发'},
+  {title:'MDN Web Docs — 前端技术文档', link:'https://developer.mozilla.org/', cat:'💻 编程开发'},
+  {title:'GeeksforGeeks — 编程教程大全', link:'https://www.geeksforgeeks.org/', cat:'💻 编程开发'},
+  {title:'CSDN — 中国开发者社区', link:'https://www.csdn.net/', cat:'💻 编程开发'},
+  {title:'CodePen — 前端代码练习', link:'https://codepen.io/', cat:'💻 编程开发'},
+  {title:'Regex101 — 正则表达式测试', link:'https://regex101.com/', cat:'💻 编程开发'},
 
-  // 🛠️ 学习工具
-  {title:'Wolfram Alpha — 数学公式求解器', link:'https://www.wolframalpha.com/', cat:'🛠️ 学习工具'},
-  {title:'Desmos — 在线函数图像绘制', link:'https://www.desmos.com/', cat:'🛠️ 学习工具'},
-  {title:'GeoGebra — 交互式数学几何工具', link:'https://www.geogebra.org/', cat:'🛠️ 学习工具'},
-  {title:'Overleaf — 在线LaTeX论文编辑器', link:'https://www.overleaf.com/', cat:'🛠️ 学习工具'},
-  {title:'DeepL翻译 — 学术论文翻译神器', link:'https://www.deepl.com/translator', cat:'🛠️ 学习工具'},
-  {title:'Grammarly — 英语写作语法检查', link:'https://www.grammarly.com/', cat:'🛠️ 学习工具'},
-  {title:'幕布 — 大纲笔记+思维导图', link:'https://mubu.com/', cat:'🛠️ 学习工具'},
-  {title:'ProcessOn — 在线流程图/思维导图', link:'https://www.processon.com/', cat:'🛠️ 学习工具'},
-  {title:'语雀 — 阿里出品的文档笔记工具', link:'https://www.yuque.com/', cat:'🛠️ 学习工具'},
-  {title:'石墨文档 — 在线协作文档', link:'https://shimo.im/', cat:'🛠️ 学习工具'},
+  // 🇬🇧 英语能力
+  {title:'四六级官网 — 历年真题与报名', link:'https://cet.neea.edu.cn/', cat:'🇬🇧 英语能力'},
+  {title:'每日英语听力 — VOA/BBC/CNN', link:'https://www.eudic.net/', cat:'🇬🇧 英语能力'},
+  {title:'BBC Learning English — 6分钟英语', link:'https://www.bbc.co.uk/learningenglish/', cat:'🇬🇧 英语能力'},
+  {title:'百词斩 — 四六级考研背单词', link:'https://www.baicizhan.com/', cat:'🇬🇧 英语能力'},
+  {title:'墨墨背单词 — 记忆曲线背词', link:'https://www.maimemo.com/', cat:'🇬🇧 英语能力'},
+  {title:'可可英语 — 双语听力训练', link:'https://www.kekenet.com/', cat:'🇬🇧 英语能力'},
+  {title:'Grammarly — 英语写作语法检查', link:'https://www.grammarly.com/', cat:'🇬🇧 英语能力'},
+  {title:'DeepL翻译 — 学术级机器翻译', link:'https://www.deepl.com/translator', cat:'🇬🇧 英语能力'},
+  {title:'YouGlish — 真人视频学发音', link:'https://youglish.com/', cat:'🇬🇧 英语能力'},
+  {title:'Academic Phrasebank — 学术写作句型', link:'https://www.phrasebank.manchester.ac.uk/', cat:'🇬🇧 英语能力'},
+  {title:'China Daily 双语新闻', link:'https://www.chinadaily.com.cn/', cat:'🇬🇧 英语能力'},
 
-  // 📝 刷题题库
-  {title:'LeetCode 中国 — 程序员算法刷题', link:'https://leetcode.cn/', cat:'📝 刷题题库'},
-  {title:'牛客网 — 校招笔试面试真题', link:'https://www.nowcoder.com/', cat:'📝 刷题题库'},
-  {title:'赛码 — 编程竞赛在线平台', link:'https://www.acmcoder.com/', cat:'📝 刷题题库'},
-  {title:'PTA拼题A — 浙大程序设计题库', link:'https://pintia.cn/', cat:'📝 刷题题库'},
-  {title:'洛谷 — 算法竞赛刷题社区', link:'https://www.luogu.com.cn/', cat:'📝 刷题题库'},
-  {title:'考试资料网 — 各科期末考试真题', link:'https://www.ppkao.com/', cat:'📝 刷题题库'},
-  {title:'学堂云 — SPOC在线作业与测验', link:'https://www.xuetangx.com/', cat:'📝 刷题题库'},
-  {title:'知到 — 智慧树课程章节测试', link:'https://www.zhihuishu.com/', cat:'📝 刷题题库'},
-  {title:'百词斩 — 四六级考研单词', link:'https://www.baicizhan.com/', cat:'📝 刷题题库'},
-  {title:'墨墨背单词 — 记忆曲线背单词', link:'https://www.maimemo.com/', cat:'📝 刷题题库'},
+  // 📖 课程辅修
+  {title:'中国大学MOOC — 国内名校课程', link:'https://www.icourse163.org/', cat:'📖 课程辅修'},
+  {title:'学堂在线 — 清华北大公开课', link:'https://www.xuetangx.com/', cat:'📖 课程辅修'},
+  {title:'智慧树 — 知到在线课程', link:'https://www.zhihuishu.com/', cat:'📖 课程辅修'},
+  {title:'超星尔雅 — 通识课平台', link:'https://erya.mooc.chaoxing.com/', cat:'📖 课程辅修'},
+  {title:'B站知识区 — 学习类视频合集', link:'https://www.bilibili.com/v/knowledge/', cat:'📖 课程辅修'},
+  {title:'猴博士B站 — 大学物理/高数速成', link:'https://space.bilibili.com/388922443', cat:'📖 课程辅修'},
+  {title:'TED 演讲 — 中英双语字幕', link:'https://www.ted.com/', cat:'📖 课程辅修'},
+  {title:'TED-Ed — 教育动画短片', link:'https://ed.ted.com/', cat:'📖 课程辅修'},
+  {title:'PhET — 物理化学交互模拟实验', link:'https://phet.colorado.edu/', cat:'📖 课程辅修'},
+  {title:'CircuitJS — 在线电路仿真实验', link:'https://www.falstad.com/circuit/', cat:'📖 课程辅修'},
 
-  // 🎧 音频资源
-  {title:'每日英语听力 — VOA/BBC/CNN新闻', link:'https://www.eudic.net/', cat:'🎧 音频资源'},
-  {title:'喜马拉雅 — 英语四六级听力真题', link:'https://www.ximalaya.com/', cat:'🎧 音频资源'},
-  {title:'可可英语 — 双语听力训练', link:'https://www.kekenet.com/', cat:'🎧 音频资源'},
-  {title:'China Daily 双语新闻音频版', link:'https://www.chinadaily.com.cn/', cat:'🎧 音频资源'},
-  {title:'6分钟英语 BBC Learning English', link:'https://www.bbc.co.uk/learningenglish/', cat:'🎧 音频资源'},
-  {title:'TED 演讲音频合集（中英字幕）', link:'https://www.ted.com/', cat:'🎧 音频资源'},
-  {title:'潘吉Jenny告诉你 — 英语学习播客', link:'https://www.ximalaya.com/waiyu/', cat:'🎧 音频资源'},
-  {title:'得到App — 大学通识课音频', link:'https://www.dedao.cn/', cat:'🎧 音频资源'},
+  // 📝 刷题考试
+  {title:'赛码 — 编程竞赛在线平台', link:'https://www.acmcoder.com/', cat:'📝 刷题考试'},
+  {title:'考试资料网 — 各科期末真题', link:'https://www.ppkao.com/', cat:'📝 刷题考试'},
+  {title:'全国计算机等级考试官网', link:'https://ncre.neea.edu.cn/', cat:'📝 刷题考试'},
+  {title:'考研网 — 考研资料与经验', link:'https://www.kaoyan.com/', cat:'📝 刷题考试'},
+  {title:'赛氪 — 大学生竞赛活动平台', link:'https://www.saikr.com/', cat:'📝 刷题考试'},
+  {title:'VisuAlgo — 算法交互可视化', link:'https://visualgo.net/zh', cat:'📝 刷题考试'},
 
-  // 🖼️ 图片/图解
-  {title:'VisuAlgo — 算法可视化交互图解', link:'https://visualgo.net/zh', cat:'🖼️ 图解资源'},
-  {title:'Seeing Theory — 概率统计可视化', link:'https://seeing-theory.brown.edu/', cat:'🖼️ 图解资源'},
-  {title:'GitMind — AI思维导图生成', link:'https://gitmind.cn/', cat:'🖼️ 图解资源'},
-  {title:'Diagrams.net — 免费在线绘图工具', link:'https://app.diagrams.net/', cat:'🖼️ 图解资源'},
-  {title:'电路仿真 — CircuitJS在线实验', link:'https://www.falstad.com/circuit/', cat:'🖼️ 图解资源'},
-  {title:'PhET — 物理/化学交互式模拟实验', link:'https://phet.colorado.edu/', cat:'🖼️ 图解资源'},
+  // 🛠️ 效率工具
+  {title:'幕布 — 大纲笔记+思维导图', link:'https://mubu.com/', cat:'🛠️ 效率工具'},
+  {title:'ProcessOn — 在线流程图思维导图', link:'https://www.processon.com/', cat:'🛠️ 效率工具'},
+  {title:'语雀 — 阿里文档笔记工具', link:'https://www.yuque.com/', cat:'🛠️ 效率工具'},
+  {title:'石墨文档 — 在线协作办公', link:'https://shimo.im/', cat:'🛠️ 效率工具'},
+  {title:'腾讯文档 — 在线文档小程序', link:'https://docs.qq.com/', cat:'🛠️ 效率工具'},
+  {title:'微信读书 — 海量书籍免费看', link:'https://weread.qq.com/', cat:'🛠️ 效率工具'},
+  {title:'讯飞听见 — 语音转文字笔记', link:'https://www.iflyrec.com/', cat:'🛠️ 效率工具'},
+  {title:'forest专注森林 — 番茄钟种树', link:'https://www.forestapp.cc/', cat:'🛠️ 效率工具'},
+  {title:'Canva — 在线设计PPT海报', link:'https://www.canva.com/', cat:'🛠️ 效率工具'},
+  {title:'GitMind — AI思维导图生成', link:'https://gitmind.cn/', cat:'🛠️ 效率工具'},
 
-  // 📱 微信小程序
-  {title:'微信读书 — 海量书籍免费看', link:'https://weread.qq.com/', cat:'📱 小程序'},
-  {title:'番茄ToDo — 学霸模式计时器小程序', link:'/#小程序:番茄ToDo', cat:'📱 小程序'},
-  {title:'小打卡 — 学习习惯养成社区', link:'/#小程序:小打卡', cat:'📱 小程序'},
-  {title:'forest专注森林 — 种树计时法', link:'https://www.forestapp.cc/', cat:'📱 小程序'},
-  {title:'腾讯文档 — 在线文档协作小程序', link:'https://docs.qq.com/', cat:'📱 小程序'},
-  {title:'讯飞听见 — 语音转文字/课堂录音转笔记', link:'https://www.iflyrec.com/', cat:'📱 小程序'},
+  // 🎓 论文科研
+  {title:'Google Scholar — 学术搜索', link:'https://scholar.google.com/', cat:'🎓 论文科研'},
+  {title:'arXiv — 预印本论文库', link:'https://arxiv.org/', cat:'🎓 论文科研'},
+  {title:'Sci-Hub — 论文免费下载', link:'https://sci-hub.se/', cat:'🎓 论文科研'},
+  {title:'Z-Library — 电子书免费下载', link:'https://z-lib.io/', cat:'🎓 论文科研'},
+  {title:'Overleaf — 在线LaTeX论文编辑', link:'https://www.overleaf.com/', cat:'🎓 论文科研'},
+  {title:'Diagrams.net — 论文配图绘制', link:'https://app.diagrams.net/', cat:'🎓 论文科研'},
+  {title:'Hemingway Editor — 英文写作简洁度检查', link:'https://hemingwayapp.com/', cat:'🎓 论文科研'},
 ];
 
 // Default starter pack for new users
 var DEFAULT_RESOURCES = [
-  {id:10001, title:'中国大学MOOC', link:'https://www.icourse163.org/', category:'🎥 视频课程', added:''},
-  {id:10002, title:'B站宋浩老师高数', link:'https://space.bilibili.com/66607740', category:'🎥 视频课程', added:''},
-  {id:10003, title:'四六级历年真题', link:'https://cet.neea.edu.cn/', category:'📖 文档资料', added:''},
-  {id:10004, title:'LeetCode 中国刷题', link:'https://leetcode.cn/', category:'📝 刷题题库', added:''},
-  {id:10005, title:'每日英语听力', link:'https://www.eudic.net/', category:'🎧 音频资源', added:''},
-  {id:10006, title:'DeepL学术翻译', link:'https://www.deepl.com/translator', category:'🛠️ 学习工具', added:''},
-  {id:10007, title:'VisuAlgo算法可视化', link:'https://visualgo.net/zh', category:'🖼️ 图解资源', added:''},
-  {id:10008, title:'微信读书', link:'https://weread.qq.com/', category:'📱 小程序', added:''},
+  {id:10001, title:'中国大学MOOC', link:'https://www.icourse163.org/', category:'📖 课程辅修', added:''},
+  {id:10002, title:'B站宋浩老师高数', link:'https://space.bilibili.com/66607740', category:'📐 数学学习', added:''},
+  {id:10003, title:'四六级历年真题', link:'https://cet.neea.edu.cn/', category:'🇬🇧 英语能力', added:''},
+  {id:10004, title:'LeetCode 中国刷题', link:'https://leetcode.cn/', category:'💻 编程开发', added:''},
+  {id:10005, title:'每日英语听力', link:'https://www.eudic.net/', category:'🇬🇧 英语能力', added:''},
+  {id:10006, title:'DeepL学术翻译', link:'https://www.deepl.com/translator', category:'🇬🇧 英语能力', added:''},
+  {id:10007, title:'Overleaf 在线LaTeX', link:'https://www.overleaf.com/', category:'🎓 论文科研', added:''},
+  {id:10008, title:'幕布笔记+思维导图', link:'https://mubu.com/', category:'🛠️ 效率工具', added:''},
 ];
 
 // ═══════════════════════════════════════
@@ -912,12 +920,12 @@ var DEFAULT_RESOURCES = [
 // ═══════════════════════════════════════
 function ensureDefaultResources() {
   var ver = userLoad('resVersion', 0);
-  if (ver < 3) {
+  if (ver < 4) {
     // Keep user-added resources (non-default IDs > 20000), replace defaults
     var userAdded = resources.filter(function(r){ return r.id >= 20000; });
     var newDefaults = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
     resources = newDefaults.concat(userAdded);
-    userSave('resVersion', 3);
+    userSave('resVersion', 4);
     saveAllUserData();
   }
 }
@@ -1047,7 +1055,9 @@ function refreshRecommend() {
 
 function renderMyResources() {
   var filter = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
+  var q = (document.getElementById('myResSearch') && document.getElementById('myResSearch').value || '').trim().toLowerCase();
   var filtered = filter === 'all' ? resources : resources.filter(function(r){ return r.category === filter; });
+  if (q) { filtered = filtered.filter(function(r){ return r.title.toLowerCase().indexOf(q) !== -1; }); }
   var list = document.getElementById('resList');
   if (!filtered.length) {
     list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>还没有资源，去上面搜索或查看推荐吧！</p></div>';
