@@ -894,7 +894,33 @@ var BUILTIN_DB = [
   {title:'Z-Library — 电子书免费下载', link:'https://z-lib.io/', cat:'📚 资料查阅'},
   {title:'Overleaf — 在线LaTeX论文编辑', link:'https://www.overleaf.com/', cat:'📚 资料查阅'},
   {title:'Diagrams.net — 论文配图绘制', link:'https://app.diagrams.net/', cat:'📚 资料查阅'},
-  {title:'Hemingway Editor — 英文写作简洁度检查', link:'https://hemingwayapp.com/', cat:'📚 资料查阅'},
+  {title:'Hemingway Editor — 英文写作简洁度检查', link:'https://hemingwayapp.com/', cat:'🛠️ 效率工具'},
+  // More
+  {title:'B站蜂考 — 大学期末速成课合集', link:'https://space.bilibili.com/371925548', cat:'📖 课程学习'},
+  {title:'网易公开课 — 国际名校课程翻译', link:'https://open.163.com/', cat:'📖 课程学习'},
+  {title:'慕课网 — IT编程实战教程', link:'https://www.imooc.com/', cat:'📖 课程学习'},
+  {title:'实验楼 — 在线Linux/Python编程实验', link:'https://www.lanqiao.cn/', cat:'📖 课程学习'},
+  {title:'可汗学院中文 — 数学科学免费课', link:'https://zh.khanacademy.org/', cat:'📖 课程学习'},
+  {title:'Python123 — 北理工Python练习平台', link:'https://python123.io/', cat:'📝 刷题练习'},
+  {title:'HDU OJ — 杭电ACM在线判题', link:'https://acm.hdu.edu.cn/', cat:'📝 刷题练习'},
+  {title:'Codeforces — 国际算法竞赛', link:'https://codeforces.com/', cat:'📝 刷题练习'},
+  {title:'粉笔题库 — 四六级/考研/考公刷题', link:'https://www.fenbi.com/', cat:'📝 刷题练习'},
+  {title:'考试宝 — 十年四六级真题免费刷', link:'https://www.kaoshibao.com/', cat:'📝 刷题练习'},
+  {title:'雨课堂 — 课堂互动与在线测验', link:'https://www.yuketang.cn/', cat:'📝 刷题练习'},
+  {title:'知网CNKI — 中文学术论文检索', link:'https://www.cnki.net/', cat:'📚 资料查阅'},
+  {title:'万方数据 — 学术期刊论文库', link:'https://www.wanfangdata.com.cn/', cat:'📚 资料查阅'},
+  {title:'维普网 — 中文期刊服务平台', link:'https://www.cqvip.com/', cat:'📚 资料查阅'},
+  {title:'豆丁网 — 教育考试文档分享', link:'https://www.docin.com/', cat:'📚 资料查阅'},
+  {title:'DeepL Write — AI英语写作润色', link:'https://www.deepl.com/write', cat:'🛠️ 效率工具'},
+  {title:'沉浸式翻译 — 网页双语对照浏览', link:'https://immersivetranslate.com/', cat:'🛠️ 效率工具'},
+  {title:'白描网页版 — OCR图片转文字', link:'https://web.baimiaoapp.com/', cat:'🛠️ 效率工具'},
+  {title:'Smallpdf — PDF压缩/合并/转换', link:'https://smallpdf.com/cn', cat:'🛠️ 效率工具'},
+  {title:'Remove.bg — AI一键抠图去背景', link:'https://www.remove.bg/zh', cat:'🛠️ 效率工具'},
+  {title:'Pexels — 免费可商用高清图片', link:'https://www.pexels.com/zh-cn/', cat:'🛠️ 效率工具'},
+  {title:'Convertio — 在线文件格式转换器', link:'https://convertio.co/zh/', cat:'🛠️ 效率工具'},
+  {title:'IconFont — 阿里巴巴矢量图标库', link:'https://www.iconfont.cn/', cat:'🛠️ 效率工具'},
+  {title:'XMind — 在线思维导图制作', link:'https://xmind.cn/', cat:'🛠️ 效率工具'},
+  {title:'飞书 — 文档协作与知识管理', link:'https://www.feishu.cn/', cat:'🛠️ 效率工具'},
 ];
 
 // Default starter pack for new users
@@ -914,12 +940,12 @@ var DEFAULT_RESOURCES = [
 // ═══════════════════════════════════════
 function ensureDefaultResources() {
   var ver = userLoad('resVersion', 0);
-  if (ver < 6) {
+  if (ver < 7) {
     // Keep user-added resources (non-default IDs > 20000), replace defaults
     var userAdded = resources.filter(function(r){ return r.id >= 20000; });
     var newDefaults = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
     resources = newDefaults.concat(userAdded);
-    userSave('resVersion', 6);
+    userSave('resVersion', 7);
     saveAllUserData();
   }
 }
