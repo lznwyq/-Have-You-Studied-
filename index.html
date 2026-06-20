@@ -255,34 +255,58 @@
 
     <!-- RESOURCES -->
     <div class="tab-panel" id="tab-resources">
+      <!-- Search -->
       <div class="card">
-        <h3>➕ Add Resource</h3>
+        <h3>🔍 Find Resources</h3>
         <div class="res-form">
-          <input type="text" id="resTitle" placeholder="Resource name">
-          <input type="url" id="resLink" placeholder="URL (https://...)">
-          <select id="resCategory">
-            <option value="📖 Course Material">📖 Course Material</option>
-            <option value="🎥 Video">🎥 Video</option>
-            <option value="📝 Notes">📝 Notes</option>
-            <option value="💻 Practice">💻 Practice</option>
-            <option value="📄 Paper">📄 Paper</option>
-            <option value="🔗 Other">🔗 Other</option>
-          </select>
-          <button class="btn btn-primary" onclick="addResource()">Add</button>
+          <input type="text" id="resSearch" placeholder="Search: math, English, Python, physics..."
+                 onkeydown="if(event.key==='Enter')searchResources()">
+          <button class="btn btn-primary" onclick="searchResources()">Search</button>
         </div>
+        <div id="searchResults" style="display:none;margin-top:16px;"></div>
       </div>
+
+      <!-- Recommended (refreshes) -->
+      <div class="card">
+        <div class="section-header">
+          <h3 style="margin-bottom:0;">🌟 Recommended for You</h3>
+          <button class="btn btn-accent btn-sm" onclick="refreshRecommend()">🔄 Refresh</button>
+        </div>
+        <div id="recommendList" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
+
+      <!-- My Resources -->
       <div class="card">
         <div class="section-header">
           <h3 style="margin-bottom:0;">📚 My Resources</h3>
-          <select id="filterCategory" onchange="renderResources()" style="font-size:13px;">
-            <option value="all">All</option>
-            <option value="📖 Course Material">📖 Course Material</option>
-            <option value="🎥 Video">🎥 Video</option>
-            <option value="📝 Notes">📝 Notes</option>
-            <option value="💻 Practice">💻 Practice</option>
-            <option value="📄 Paper">📄 Paper</option>
-            <option value="🔗 Other">🔗 Other</option>
-          </select>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="filterCategory" onchange="renderMyResources()" style="font-size:13px;">
+              <option value="all">All</option>
+              <option value="📖 Course Material">📖 Course Material</option>
+              <option value="🎥 Video">🎥 Video</option>
+              <option value="📝 Notes">📝 Notes</option>
+              <option value="💻 Practice">💻 Practice</option>
+              <option value="📄 Paper">📄 Paper</option>
+              <option value="🔗 Other">🔗 Other</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="showAddForm()">+ Add</button>
+          </div>
+        </div>
+        <div id="addForm" style="display:none;margin-bottom:16px;padding:16px;background:#f8fafa;border-radius:12px;">
+          <div class="res-form">
+            <input type="text" id="resTitle" placeholder="Resource name">
+            <input type="url" id="resLink" placeholder="URL (https://...)">
+            <select id="resCategory">
+              <option value="📖 Course Material">📖 Course Material</option>
+              <option value="🎥 Video">🎥 Video</option>
+              <option value="📝 Notes">📝 Notes</option>
+              <option value="💻 Practice">💻 Practice</option>
+              <option value="📄 Paper">📄 Paper</option>
+              <option value="🔗 Other">🔗 Other</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="addResource()">Save</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('addForm').style.display='none'">Cancel</button>
+          </div>
         </div>
         <ul class="res-list" id="resList"></ul>
       </div>
@@ -468,7 +492,7 @@ function bindTabs() {
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'dashboard') refreshDashboard();
-      if (btn.dataset.tab === 'resources') renderResources();
+      if (btn.dataset.tab === 'resources') { renderMyResources(); refreshRecommend(); }
       if (btn.dataset.tab === 'reminders') renderReminders();
     });
   });
@@ -780,38 +804,209 @@ function renderTodaySessions() {
 }
 
 // ═══════════════════════════════════════
-// RESOURCES
+// BUILT-IN RESOURCE DATABASE (60+)
 // ═══════════════════════════════════════
+var BUILTIN_DB = [
+  {title:'CET-4 Past Papers (2015-2025)', link:'https://cet.neea.edu.cn/', cat:'📖 Course Material'},
+  {title:'CET-6 Vocabulary 6000 Words', link:'https://www.shanbay.com/', cat:'📖 Course Material'},
+  {title:'Khan Academy — Math & Science', link:'https://www.khanacademy.org/', cat:'🎥 Video'},
+  {title:'3Blue1Brown — Linear Algebra Visualized', link:'https://www.youtube.com/@3blue1brown', cat:'🎥 Video'},
+  {title:'MIT OpenCourseWare — Free Courses', link:'https://ocw.mit.edu/', cat:'📖 Course Material'},
+  {title:'CS50 by Harvard — Intro to CS', link:'https://cs50.harvard.edu/', cat:'🎥 Video'},
+  {title:'LeetCode — Coding Practice', link:'https://leetcode.com/', cat:'💻 Practice'},
+  {title:'Python Official Tutorial', link:'https://docs.python.org/3/tutorial/', cat:'💻 Practice'},
+  {title:'W3Schools — Web Dev Tutorials', link:'https://www.w3schools.com/', cat:'💻 Practice'},
+  {title:'MDN Web Docs — HTML/CSS/JS Reference', link:'https://developer.mozilla.org/', cat:'💻 Practice'},
+  {title:'Coursera — Online Courses', link:'https://www.coursera.org/', cat:'🎥 Video'},
+  {title:'edX — University Courses Online', link:'https://www.edx.org/', cat:'🎥 Video'},
+  {title:'中国大学MOOC — Chinese University Courses', link:'https://www.icourse163.org/', cat:'🎥 Video'},
+  {title:'Bilibili 学习区 — Study Channels', link:'https://www.bilibili.com/v/knowledge/', cat:'🎥 Video'},
+  {title:'Zhihu — Academic Q&A', link:'https://www.zhihu.com/', cat:'📖 Course Material'},
+  {title:'arXiv.org — Research Papers', link:'https://arxiv.org/', cat:'📄 Paper'},
+  {title:'Google Scholar — Academic Search', link:'https://scholar.google.com/', cat:'📄 Paper'},
+  {title:'Grammarly — English Writing Assistant', link:'https://www.grammarly.com/', cat:'💻 Practice'},
+  {title:'Duolingo — Language Learning', link:'https://www.duolingo.com/', cat:'💻 Practice'},
+  {title:'Notion — Note-taking & Organization', link:'https://www.notion.so/', cat:'📝 Notes'},
+  {title:'Anki — Flashcard Memorization', link:'https://apps.ankiweb.net/', cat:'📝 Notes'},
+  {title:'Wolfram Alpha — Math Solver', link:'https://www.wolframalpha.com/', cat:'💻 Practice'},
+  {title:'Desmos — Graphing Calculator', link:'https://www.desmos.com/', cat:'💻 Practice'},
+  {title:'Symbolab — Step-by-step Math', link:'https://www.symbolab.com/', cat:'💻 Practice'},
+  {title:'Paul\'s Online Math Notes', link:'https://tutorial.math.lamar.edu/', cat:'📝 Notes'},
+  {title:'Crash Course — YouTube Educational Series', link:'https://www.youtube.com/@crashcourse', cat:'🎥 Video'},
+  {title:'TED Talks — Ideas Worth Spreading', link:'https://www.ted.com/', cat:'🎥 Video'},
+  {title:'GitHub — Code Hosting & Collaboration', link:'https://github.com/', cat:'💻 Practice'},
+  {title:'Stack Overflow — Programming Q&A', link:'https://stackoverflow.com/', cat:'💻 Practice'},
+  {title:'FreeCodeCamp — Learn to Code Free', link:'https://www.freecodecamp.org/', cat:'💻 Practice'},
+  {title:'Physics LibreTexts — Free Physics Textbook', link:'https://phys.libretexts.org/', cat:'📖 Course Material'},
+  {title:'Chemistry LibreTexts — Free Chem Textbook', link:'https://chem.libretexts.org/', cat:'📖 Course Material'},
+  {title:'Math LibreTexts — Free Math Textbook', link:'https://math.libretexts.org/', cat:'📖 Course Material'},
+  {title:'Sci-Hub — Research Paper Access', link:'https://sci-hub.se/', cat:'📄 Paper'},
+  {title:'Z-Library — Free eBooks', link:'https://z-lib.io/', cat:'📖 Course Material'},
+  {title:'YouTube Learning — Educational Playlists', link:'https://www.youtube.com/learning', cat:'🎥 Video'},
+  {title:'Quizlet — Study Flashcards & Games', link:'https://quizlet.com/', cat:'💻 Practice'},
+  {title:'Overleaf — LaTeX Online Editor', link:'https://www.overleaf.com/', cat:'📝 Notes'},
+  {title:'Pomodoro Timer Online', link:'https://pomofocus.io/', cat:'🔗 Other'},
+  {title:'Forest App — Stay Focused', link:'https://www.forestapp.cc/', cat:'🔗 Other'},
+  {title:'HackerRank — Coding Challenges', link:'https://www.hackerrank.com/', cat:'💻 Practice'},
+  {title:'Codewars — Code Practice Through Challenges', link:'https://www.codewars.com/', cat:'💻 Practice'},
+  {title:'Brilliant — Interactive Math & Science', link:'https://brilliant.org/', cat:'💻 Practice'},
+  {title:'The Odin Project — Full-Stack Web Dev', link:'https://www.theodinproject.com/', cat:'💻 Practice'},
+  {title:'StatQuest — Statistics Made Easy', link:'https://www.youtube.com/@statquest', cat:'🎥 Video'},
+  {title:'Neso Academy — Engineering & CS Courses', link:'https://www.youtube.com/@nesoacademy', cat:'🎥 Video'},
+  {title:'Academic Phrasebank — English Academic Writing', link:'https://www.phrasebank.manchester.ac.uk/', cat:'📝 Notes'},
+  {title:'DeepL — Best AI Translator', link:'https://www.deepl.com/translator', cat:'🔗 Other'},
+  {title:'YouGlish — English Pronunciation by Video', link:'https://youglish.com/', cat:'🎥 Video'},
+  {title:'Etymonline — English Etymology Dictionary', link:'https://www.etymonline.com/', cat:'📖 Course Material'},
+  {title:'Linguee — Bilingual Dictionary', link:'https://www.linguee.com/', cat:'📖 Course Material'},
+  {title:'Hemingway Editor — Improve English Writing', link:'https://hemingwayapp.com/', cat:'💻 Practice'},
+  {title:'Coolors — Color Palette Generator (for UI design)', link:'https://coolors.co/', cat:'🔗 Other'},
+  {title:'Canva — Design Presentations & Graphics', link:'https://www.canva.com/', cat:'🔗 Other'},
+  {title:'GeeksforGeeks — Programming Tutorials', link:'https://www.geeksforgeeks.org/', cat:'💻 Practice'},
+  {title:'TutorialsPoint — Learn Any Technology', link:'https://www.tutorialspoint.com/', cat:'💻 Practice'},
+  {title:'CSDN — Chinese Developer Community', link:'https://www.csdn.net/', cat:'💻 Practice'},
+  {title:'Jupyter Notebook Online', link:'https://jupyter.org/try', cat:'💻 Practice'},
+  {title:'Regex101 — Regular Expression Tester', link:'https://regex101.com/', cat:'💻 Practice'},
+  {title:'JSON Formatter & Validator', link:'https://jsonformatter.org/', cat:'💻 Practice'},
+  {title:'CodePen — Frontend Playground', link:'https://codepen.io/', cat:'💻 Practice'},
+  {title:'Physics Classroom — High School & College Physics', link:'https://www.physicsclassroom.com/', cat:'📖 Course Material'},
+  {title:'Better Explained — Math Intuition', link:'https://betterexplained.com/', cat:'📖 Course Material'},
+  {title:'TED-Ed — Educational Animations', link:'https://ed.ted.com/', cat:'🎥 Video'},
+];
+
+// Default starter pack for new users
+var DEFAULT_RESOURCES = [
+  {id:10001, title:'Khan Academy', link:'https://www.khanacademy.org/', category:'🎥 Video', added:''},
+  {id:10002, title:'CS50 by Harvard', link:'https://cs50.harvard.edu/', category:'🎥 Video', added:''},
+  {id:10003, title:'CET-4 Vocabulary (Shanbay)', link:'https://www.shanbay.com/', category:'📖 Course Material', added:''},
+  {id:10004, title:'LeetCode Practice', link:'https://leetcode.com/', category:'💻 Practice', added:''},
+  {id:10005, title:'中国大学MOOC', link:'https://www.icourse163.org/', category:'🎥 Video', added:''},
+  {id:10006, title:'Grammarly Writing Assistant', link:'https://www.grammarly.com/', category:'💻 Practice', added:''},
+  {id:10007, title:'Notion Notes', link:'https://www.notion.so/', category:'📝 Notes', added:''},
+  {id:10008, title:'3Blue1Brown Math', link:'https://www.youtube.com/@3blue1brown', category:'🎥 Video', added:''},
+];
+
+// ═══════════════════════════════════════
+// RESOURCES (Search + Recommend + My)
+// ═══════════════════════════════════════
+function ensureDefaultResources() {
+  if (!userLoad('defaultsAdded', false)) {
+    resources = DEFAULT_RESOURCES.map(function(r){ return {id:r.id, title:r.title, link:r.link, category:r.category, added:new Date().toISOString().slice(0,10)}; });
+    userSave('defaultsAdded', true);
+    saveAllUserData();
+  }
+}
+
+function showAddForm() {
+  var f = document.getElementById('addForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
 function addResource() {
   var title = document.getElementById('resTitle').value.trim();
   var link  = document.getElementById('resLink').value.trim();
   var cat   = document.getElementById('resCategory').value;
   if (!title || !link) { alert('Please fill in both title and URL.'); return; }
-  resources.push({ id: Date.now(), title: title, link: link, category: cat, added: todayDate });
+  resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
   saveAllUserData();
   document.getElementById('resTitle').value = '';
   document.getElementById('resLink').value = '';
-  renderResources();
+  document.getElementById('addForm').style.display = 'none';
+  renderMyResources();
+  refreshDashboard();
+}
+
+function addFromSearch(title, link, cat) {
+  // Check duplicate
+  var dup = resources.some(function(r){ return r.link === link; });
+  if (dup) { alert('Already in your resources!'); return; }
+  resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
+  saveAllUserData();
+  renderMyResources();
+  refreshDashboard();
+  // Visual feedback — find the button and change it
+  var btns = document.querySelectorAll('.add-from-search');
+  btns.forEach(function(b){
+    if (b.dataset.link === link) { b.textContent = '✓ Added'; b.className = 'btn btn-sm'; b.style.background='#d4edda'; b.style.color='#155724'; b.disabled = true; }
+  });
+}
+
+function copyFromRecommend(title, link, cat) {
+  var dup = resources.some(function(r){ return r.link === link; });
+  if (dup) { alert('Already in your resources!'); return; }
+  resources.push({ id: Date.now(), title: title, link: link, category: cat, added: new Date().toISOString().slice(0,10) });
+  saveAllUserData();
+  renderMyResources();
   refreshDashboard();
 }
 
 function deleteResource(id) {
   resources = resources.filter(function(r){ return r.id !== id; });
   saveAllUserData();
-  renderResources();
+  renderMyResources();
   refreshDashboard();
 }
 
-function renderResources() {
+function searchResources() {
+  var q = document.getElementById('resSearch').value.trim().toLowerCase();
+  var div = document.getElementById('searchResults');
+  if (!q) { div.style.display = 'none'; return; }
+  var results = BUILTIN_DB.filter(function(r){
+    return r.title.toLowerCase().indexOf(q) !== -1 || r.cat.toLowerCase().indexOf(q) !== -1;
+  }).slice(0, 12);
+  div.style.display = 'block';
+  if (!results.length) {
+    div.innerHTML = '<div class="empty-state"><div class="eicon">🔍</div><p>No results for "'+q+'". Try a different keyword.</p></div>';
+    return;
+  }
+  div.innerHTML = '<h4 style="color:var(--teal-dark);margin-bottom:12px;">Found '+results.length+' result(s) for "'+q+'"</h4>' +
+    results.map(function(r){
+      var has = resources.some(function(my){ return my.link === r.link; });
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f8fafa;border-radius:10px;margin-bottom:6px;gap:10px;">'+
+        '<div><strong style="color:var(--teal-dark);">'+r.title+'</strong> <span class="rcat">'+r.cat+'</span></div>'+
+        '<div style="display:flex;gap:8px;flex-shrink:0;">'+
+          '<a href="'+r.link+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm">🔗</a>'+
+          (has ? '<span style="font-size:12px;color:var(--teal-light);">✓ Saved</span>' : '<button class="btn btn-accent btn-sm add-from-search" data-link="'+r.link+'" onclick="addFromSearch(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ Add</button>')+
+        '</div></div>';
+    }).join('');
+}
+
+function refreshRecommend() {
+  // Pick 6 random from BUILTIN_DB, excluding those already in user's resources
+  var pool = BUILTIN_DB.filter(function(r){
+    return !resources.some(function(my){ return my.link === r.link; });
+  });
+  // Shuffle and take 6
+  for (var i = pool.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+  }
+  var picks = pool.slice(0, 6);
+  var div = document.getElementById('recommendList');
+  if (!picks.length) {
+    div.innerHTML = '<p style="color:var(--gray);font-size:14px;">You\'ve saved all our recommendations! 🎉</p>';
+    return;
+  }
+  div.innerHTML = picks.map(function(r){
+    return '<div style="flex:1;min-width:200px;max-width:240px;background:#f8fafa;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">'+
+      '<div><strong style="color:var(--teal-dark);font-size:14px;">'+r.title+'</strong><br>'+
+      '<span class="rcat" style="font-size:10px;">'+r.cat+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px;">'+
+        '<a href="'+r.link+'" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;text-align:center;">Open</a>'+
+        '<button class="btn btn-accent btn-sm" style="flex:1;" onclick="copyFromRecommend(\''+r.title.replace(/'/g,"\\'")+'\',\''+r.link+'\',\''+r.cat+'\')">+ Add</button>'+
+      '</div></div>';
+  }).join('');
+}
+
+function renderMyResources() {
   var filter = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
   var filtered = filter === 'all' ? resources : resources.filter(function(r){ return r.category === filter; });
   var list = document.getElementById('resList');
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>No resources yet. Add your first one!</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>No resources yet. Search above or check recommendations!</p></div>';
     return;
   }
   list.innerHTML = filtered.map(function(r) {
-    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.category+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 Open</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
+    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.cat+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 Open</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
   }).join('');
 }
 
@@ -920,14 +1115,15 @@ function showApp() {
   document.getElementById('appScreen').style.display = 'block';
   document.getElementById('userTag').textContent = '👤 ' + currentUser;
   loadUserData();
+  ensureDefaultResources();
   updatePermButton();
-  // Bind permission button via JS (more reliable than onclick)
   var permBtn = document.getElementById('permBtn');
   if (permBtn) {
     permBtn.addEventListener('click', requestPermission);
   }
   refreshDashboard();
-  renderResources();
+  renderMyResources();
+  refreshRecommend();
   renderReminders();
   renderTodaySessions();
   updateTimerDisplay();
