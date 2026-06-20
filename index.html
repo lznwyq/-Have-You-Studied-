@@ -213,7 +213,7 @@
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <h3 style="margin-bottom:0;">📅 Last 7 Days</h3>
-          <button class="btn btn-accent btn-sm" id="permBtn" onclick="requestPermission()" style="display:none;">🔔 Enable Desktop Notifications</button>
+          <button class="btn btn-accent btn-sm" id="permBtn" style="display:none;">🔔 Enable Desktop Notifications</button>
         </div>
         <div id="weeklyBars"></div>
       </div>
@@ -361,21 +361,53 @@ function doLogout() {
 // NOTIFICATION PERMISSION
 // ═══════════════════════════════════════
 function requestPermission() {
+  // Check support
   if (!('Notification' in window)) {
-    alert('Your browser does not support desktop notifications. Try using Chrome or Edge.');
+    alert('Your browser does not support desktop notifications. Please use Chrome or Edge.');
     return;
   }
-  Notification.requestPermission().then(function(perm) {
-    updatePermButton();
-    if (perm === 'granted') {
-      new Notification('✅ 学了吗 is Ready!', {
-        body: 'Desktop notifications are ON. You will get focus warnings and study reminders!',
-        requireInteraction: true
+
+  // Already granted
+  if (Notification.permission === 'granted') {
+    alert('Notifications are already ON! Try switching tabs during focus mode — you should get a popup.');
+    return;
+  }
+
+  // Already denied — guide user
+  if (Notification.permission === 'denied') {
+    alert('Notifications are blocked for this site.\n\nTo fix: click the lock icon next to the URL → Site Settings → Notifications → Allow → Refresh.');
+    return;
+  }
+
+  // permission === 'default' — request it
+  try {
+    var result = Notification.requestPermission();
+    // Handle both Promise and non-Promise returns
+    if (result && typeof result.then === 'function') {
+      result.then(function(perm) {
+        handlePermissionResult(perm);
+      }).catch(function(err) {
+        alert('Error requesting permission: ' + err.message + '\nTry manually: click lock icon next to URL → Site Settings → Notifications → Allow.');
       });
-    } else if (perm === 'denied') {
-      alert('⚠️ Notifications blocked.\n\nTo fix: click the lock/settings icon in your address bar → Site Settings → Notifications → Allow.\n\nThen refresh this page.');
+    } else {
+      // Old callback-style API
+      if (typeof result === 'string') {
+        handlePermissionResult(result);
+      }
     }
-  });
+  } catch(e) {
+    alert('Failed to open permission dialog.\n\nPlease do this manually:\n1. Click the lock icon next to the URL\n2. Site Settings → Notifications → Allow\n3. Refresh the page');
+  }
+}
+
+function handlePermissionResult(perm) {
+  updatePermButton();
+  if (perm === 'granted') {
+    new Notification('✅ 学了吗 is Ready!', {
+      body: 'Desktop notifications are ON. You will get focus warnings and study reminders!',
+      requireInteraction: true
+    });
+  }
 }
 
 function updatePermButton() {
@@ -822,12 +854,16 @@ function showApp() {
   document.getElementById('userTag').textContent = '👤 ' + currentUser;
   loadUserData();
   updatePermButton();
+  // Bind permission button via JS (more reliable than onclick)
+  var permBtn = document.getElementById('permBtn');
+  if (permBtn) {
+    permBtn.addEventListener('click', requestPermission);
+  }
   refreshDashboard();
   renderResources();
   renderReminders();
   renderTodaySessions();
   updateTimerDisplay();
-  // Check if stored reminders need to fire
   checkReminders();
 }
 
