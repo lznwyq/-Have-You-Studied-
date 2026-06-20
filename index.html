@@ -749,7 +749,14 @@ document.addEventListener('visibilitychange', function() {
   if (timerRunning && document.hidden) doDistractionAlert();
 });
 window.addEventListener('blur', function() {
-  if (timerRunning) doDistractionAlert();
+  if (!timerRunning) return;
+  // Delay check: if clicking inside the page, focus returns quickly → no alert
+  setTimeout(function() {
+    if (!timerRunning) return;
+    if (document.hidden || !document.hasFocus()) {
+      doDistractionAlert();
+    }
+  }, 300);
 });
 
 // Fallback: every timer tick also checks (runs slower in background)
