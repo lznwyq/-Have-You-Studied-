@@ -434,10 +434,11 @@ function updatePermButton() {
 // ═══════════════════════════════════════
 // DATA ACCESS (delegates to user-scoped)
 // ═══════════════════════════════════════
-let studyLog, distractionLog, resources, reminders, todayDate;
+let studyLog, sessionLog, distractionLog, resources, reminders, todayDate;
 
 function loadUserData() {
   studyLog       = userLoad('studyLog', {});
+  sessionLog     = userLoad('sessionLog', {});
   distractionLog = userLoad('distractionLog', {});
   resources      = userLoad('resources', []);
   reminders      = userLoad('reminders', []);
@@ -448,6 +449,7 @@ function loadUserData() {
 
 function saveAllUserData() {
   userSave('studyLog', studyLog);
+  userSave('sessionLog', sessionLog);
   userSave('distractionLog', distractionLog);
   userSave('resources', resources);
   userSave('reminders', reminders);
@@ -521,12 +523,13 @@ function refreshDashboard() {
     ds.setDate(weekStart.getDate()+i);
     weekTotal += studyLog[ds.toISOString().slice(0,10)] || 0;
   }
-  var allKeys = Object.keys(studyLog).filter(function(d){ return studyLog[d] > 0; });
+  var totalSessions = 0;
+  Object.keys(sessionLog).forEach(function(d){ totalSessions += sessionLog[d] || 0; });
   var streak = calcStreak();
 
   document.getElementById('statToday').textContent = today+'m';
   document.getElementById('statWeek').textContent = (weekTotal/60).toFixed(1)+'h';
-  document.getElementById('statSessions').textContent = allKeys.length;
+  document.getElementById('statSessions').textContent = totalSessions;
   var todayDistractions = distractionLog[todayDate] || 0;
   document.getElementById('statDistractions').textContent = todayDistractions;
   // Bars
@@ -598,6 +601,7 @@ function logStudyMinutes(mins) {
   if (mins <= 0) return;
   todayDate = new Date().toISOString().slice(0,10);
   studyLog[todayDate] = (studyLog[todayDate] || 0) + mins;
+  sessionLog[todayDate] = (sessionLog[todayDate] || 0) + 1; // each log = 1 session
   saveAllUserData();
   refreshDashboard();
   renderTodaySessions();
