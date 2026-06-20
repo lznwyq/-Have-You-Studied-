@@ -312,6 +312,15 @@
         </div>
         <ul class="res-list" id="resList"></ul>
       </div>
+
+      <!-- Trash -->
+      <div class="card" id="trashCard" style="display:none;">
+        <div class="section-header">
+          <h3 style="margin-bottom:0;">🗑️ 回收站</h3>
+          <button class="btn btn-danger btn-sm" onclick="emptyTrash()">清空</button>
+        </div>
+        <ul class="res-list" id="trashList"></ul>
+      </div>
     </div>
 
     <!-- REMINDERS -->
@@ -460,13 +469,14 @@ function updatePermButton() {
 // ═══════════════════════════════════════
 // DATA ACCESS (delegates to user-scoped)
 // ═══════════════════════════════════════
-let studyLog, sessionLog, distractionLog, resources, reminders, todayDate;
+let studyLog, sessionLog, distractionLog, resources, trashBin, reminders, todayDate;
 
 function loadUserData() {
   studyLog       = userLoad('studyLog', {});
   sessionLog     = userLoad('sessionLog', {});
   distractionLog = userLoad('distractionLog', {});
   resources      = userLoad('resources', []);
+  trashBin       = userLoad('trashBin', []);
   reminders      = userLoad('reminders', []);
   reminderFiredToday = userLoad('reminderFired', {});
   missedReminders   = userLoad('missedReminders', []);
@@ -478,6 +488,7 @@ function saveAllUserData() {
   userSave('sessionLog', sessionLog);
   userSave('distractionLog', distractionLog);
   userSave('resources', resources);
+  userSave('trashBin', trashBin);
   userSave('reminders', reminders);
   userSave('reminderFired', reminderFiredToday);
   userSave('missedReminders', missedReminders);
@@ -955,10 +966,32 @@ function copyFromRecommend(title, link, cat) {
 }
 
 function deleteResource(id) {
+  var item = resources.find(function(r){ return r.id === id; });
+  if (!item) return;
   resources = resources.filter(function(r){ return r.id !== id; });
+  trashBin.push({ id: item.id, title: item.title, link: item.link, category: item.category, deletedAt: Date.now() });
   saveAllUserData();
   renderMyResources();
   refreshDashboard();
+}
+
+function restoreResource(id) {
+  var item = trashBin.find(function(r){ return r.id === id; });
+  if (!item) return;
+  trashBin = trashBin.filter(function(r){ return r.id !== id; });
+  resources.push({ id: item.id, title: item.title, link: item.link, category: item.category, added: new Date().toISOString().slice(0,10) });
+  saveAllUserData();
+  renderMyResources();
+  refreshDashboard();
+}
+
+function emptyTrash() {
+  if (!trashBin.length) return;
+  if (confirm('确定清空回收站？将无法恢复。')) {
+    trashBin = [];
+    saveAllUserData();
+    renderMyResources();
+  }
 }
 
 function searchResources() {
@@ -1023,6 +1056,18 @@ function renderMyResources() {
   list.innerHTML = filtered.map(function(r) {
     return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.cat+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 打开</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
   }).join('');
+
+  // Trash
+  var tc = document.getElementById('trashCard');
+  var tl = document.getElementById('trashList');
+  if (trashBin.length > 0) {
+    tc.style.display = 'block';
+    tl.innerHTML = trashBin.map(function(r) {
+      return '<li style="opacity:0.6;"><div><span class="rtitle" style="text-decoration:line-through;">'+r.title+'</span> <span class="rcat">'+r.cat+'</span></div><button class="btn btn-accent btn-sm" onclick="restoreResource('+r.id+')">↩ 恢复</button></li>';
+    }).join('');
+  } else {
+    tc.style.display = 'none';
+  }
 }
 
 // ═══════════════════════════════════════
