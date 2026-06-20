@@ -597,11 +597,13 @@ function updateTimerDisplay() {
     String(timerMinutes).padStart(2,'0')+':'+String(timerSeconds).padStart(2,'0');
 }
 
-function logStudyMinutes(mins) {
+function logStudyMinutes(mins, isComplete) {
   if (mins <= 0) return;
   todayDate = new Date().toISOString().slice(0,10);
   studyLog[todayDate] = (studyLog[todayDate] || 0) + mins;
-  sessionLog[todayDate] = (sessionLog[todayDate] || 0) + 1; // each log = 1 session
+  if (isComplete) {
+    sessionLog[todayDate] = (sessionLog[todayDate] || 0) + 1;
+  }
   saveAllUserData();
   refreshDashboard();
   renderTodaySessions();
@@ -668,7 +670,7 @@ function resetTimer() {
 function finishSession() {
   clearInterval(timerInterval); timerInterval = null;
   var elapsedMin = focusStartTime ? Math.floor((Date.now() - focusStartTime) / 60000) : 0;
-  logStudyMinutes(elapsedMin);
+  logStudyMinutes(elapsedMin, true);  // only complete sessions count
   isBreak = true;
   timerMinutes = 5; timerSeconds = 0;
   updateTimerDisplay();
