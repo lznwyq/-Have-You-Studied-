@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学了吗 · Have You Studied?</title>
+<style>
+  :root {
+    --teal-dark: #1a3c40; --teal-mid: #2c7873; --teal-light: #6fb3b8;
+    --accent: #f4a261; --danger: #e76f51; --white: #fff; --bg: #f0f4f5;
+    --card: #fff; --text: #2d3436; --gray: #636e72; --border: #e0e4e8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+  }
+
+  /* ── Login Screen ───────────────── */
+  #loginScreen {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; background:linear-gradient(135deg, var(--teal-dark) 0%, var(--teal-mid) 100%);
+  }
+  #loginScreen .login-card {
+    background:#fff; border-radius:20px; padding:48px 40px; text-align:center;
+    max-width:420px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,.2);
+  }
+  #loginScreen .login-card h1 { font-size:36px; color:var(--teal-dark); margin-bottom:8px; }
+  #loginScreen .login-card h1 span { color:var(--accent); }
+  #loginScreen .login-card .sub { color:var(--gray); font-size:14px; margin-bottom:32px; }
+  #loginScreen .login-card input {
+    width:100%; padding:14px 18px; border:2px solid var(--border); border-radius:12px;
+    font-size:16px; text-align:center; margin-bottom:16px; outline:none;
+  }
+  #loginScreen .login-card input:focus { border-color:var(--teal-mid); }
+  #loginScreen .login-card .btn {
+    width:100%; padding:14px; border:none; border-radius:12px; font-size:17px;
+    font-weight:700; cursor:pointer; background:var(--teal-mid); color:#fff; transition:.2s;
+  }
+  #loginScreen .login-card .btn:hover { background:#23635e; }
+  #loginScreen .login-card .auto-hint { font-size:12px; color:var(--teal-light); margin-top:12px; }
+  #loginScreen .login-card .switch-link { font-size:13px; color:var(--teal-mid); cursor:pointer; margin-top:16px; text-decoration:underline; }
+
+  /* ── Main App ───────────────────── */
+  #appScreen { display:none; }
+
+  .topbar {
+    background:var(--teal-dark); color:#fff; padding:12px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+    position:sticky; top:0; z-index:100;
+  }
+  .topbar .logo { font-size:20px; font-weight:700; }
+  .topbar .logo span { color:var(--accent); }
+  .topbar .right { display:flex; align-items:center; gap:14px; }
+  .topbar .streak { font-size:13px; color:var(--teal-light); }
+  .topbar .user-tag { font-size:12px; background:rgba(255,255,255,.15); padding:4px 12px; border-radius:12px; cursor:pointer; }
+  .topbar .user-tag:hover { background:rgba(255,255,255,.25); }
+
+  /* ── Tabs ───────────────────────── */
+  .tabs {
+    display:flex; background:#fff; border-bottom:2px solid var(--border);
+    position:sticky; top:53px; z-index:99; overflow-x:auto;
+  }
+  .tabs button {
+    flex:1; min-width:90px; padding:14px 16px; border:none; background:none;
+    font-size:14px; cursor:pointer; color:var(--gray); font-weight:500;
+    border-bottom:3px solid transparent; transition:.2s; white-space:nowrap;
+  }
+  .tabs button:hover { color:var(--teal-mid); }
+  .tabs button.active { color:var(--teal-mid); border-bottom-color:var(--teal-mid); font-weight:700; }
+
+  main { max-width:800px; margin:0 auto; padding:24px 16px; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  .card {
+    background:var(--card); border-radius:16px; padding:24px;
+    margin-bottom:20px; box-shadow:0 2px 12px rgba(0,0,0,.05);
+  }
+  .card h3 { font-size:18px; color:var(--teal-dark); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .btn {
+    display:inline-block; padding:10px 24px; border:none; border-radius:10px;
+    font-size:15px; font-weight:600; cursor:pointer; transition:.2s;
+  }
+  .btn-primary { background:var(--teal-mid); color:#fff; }
+  .btn-primary:hover { background:#23635e; }
+  .btn-accent { background:var(--accent); color:#fff; }
+  .btn-accent:hover { background:#e08f4d; }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { background:#d05e41; }
+  .btn-sm { padding:6px 14px; font-size:13px; border-radius:8px; }
+  .btn-outline { background:none; border:2px solid var(--border); color:var(--gray); }
+  .btn-outline:hover { border-color:var(--teal-mid); color:var(--teal-mid); }
+  input, select {
+    padding:10px 14px; border:2px solid var(--border); border-radius:10px;
+    font-size:14px; outline:none; transition:.2s; font-family:inherit;
+  }
+  input:focus, select:focus { border-color:var(--teal-mid); }
+
+  /* ── Stats ──────────────────────── */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:20px; }
+  .stat-box { text-align:center; padding:20px 16px; background:#f8fafa; border-radius:12px; }
+  .stat-box .val { font-size:32px; font-weight:700; color:var(--teal-mid); }
+  .stat-box .lbl { font-size:12px; color:var(--gray); margin-top:4px; }
+
+  .bar-wrap { margin:8px 0; display:flex; align-items:center; gap:10px; }
+  .bar-wrap .day { width:50px; font-size:13px; color:var(--gray); text-align:right; }
+  .bar-wrap .bar { flex:1; height:20px; background:var(--border); border-radius:10px; overflow:hidden; }
+  .bar-wrap .bar .fill { height:100%; background:var(--teal-mid); border-radius:10px; transition:width .3s; }
+  .bar-wrap .mins { font-size:13px; width:60px; }
+
+  /* ── Timer ──────────────────────── */
+  .timer-circle {
+    width:200px; height:200px; border-radius:50%; border:8px solid var(--border);
+    margin:0 auto 24px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; transition:border-color .3s;
+  }
+  .timer-circle.running { border-color:var(--teal-mid); }
+  .timer-circle.break { border-color:var(--accent); }
+  .timer-time { font-size:48px; font-weight:700; color:var(--teal-dark); }
+  .timer-label { font-size:13px; color:var(--gray); margin-top:4px; }
+  .timer-controls { display:flex; gap:12px; justify-content:center; margin-bottom:20px; }
+  .focus-preset { display:flex; gap:8px; justify-content:center; margin-bottom:20px; align-items:center; flex-wrap:wrap; }
+  .focus-preset button { padding:8px 16px; border-radius:8px; border:2px solid var(--border); background:#fff; cursor:pointer; font-size:13px; }
+  .focus-preset button.selected { border-color:var(--teal-mid); color:var(--teal-mid); font-weight:700; }
+  #customMin { width:72px; padding:8px; text-align:center; border:2px solid var(--border); border-radius:8px; font-size:13px; }
+
+  .distraction-warning {
+    background:#fff3cd; border:1px solid #ffc107; border-radius:12px;
+    padding:12px 16px; text-align:center; font-size:14px; display:none;
+  }
+  .distraction-warning.show { display:block; animation:shake .5s; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+  }
+
+  /* ── Resources ──────────────────── */
+  .res-form { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .res-form input { flex:1; min-width:150px; }
+  .res-list { list-style:none; }
+  .res-list li {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 16px; background:#f8fafa; border-radius:10px; margin-bottom:8px;
+    gap:12px; flex-wrap:wrap;
+  }
+  .res-list li .rtitle { font-weight:600; color:var(--teal-dark); }
+  .res-list li .rcat { font-size:11px; background:var(--teal-light); color:#fff; padding:2px 10px; border-radius:12px; }
+  .res-list li .rlink { font-size:13px; color:var(--teal-mid); }
+  .empty-state { text-align:center; color:var(--gray); padding:40px; }
+  .empty-state .eicon { font-size:48px; margin-bottom:12px; }
+
+  .reminder-form { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+  .reminder-list { list-style:none; }
+  .reminder-list li {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 16px; background:#f8fafa; border-radius:10px; margin-bottom:8px; gap:12px;
+  }
+  .reminder-list li .rtime { font-weight:700; color:var(--teal-dark); }
+  .reminder-list li .rlabel { font-size:13px; color:var(--gray); }
+  .rstatus { font-size:12px; padding:4px 10px; border-radius:10px; }
+  .rstatus.on { background:#d4edda; color:#155724; }
+  .rstatus.off { background:#f8d7fa; color:#721c24; }
+
+  .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+
+  @media (max-width:600px) {
+    .tabs button { font-size:12px; padding:12px 8px; }
+    .timer-circle { width:160px; height:160px; }
+    .timer-time { font-size:36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>📚 学了吗 <span>·</span><br><span>Have You Studied?</span></h1>
+    <p class="sub">Your gentle learning companion</p>
+    <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="20">
+    <input type="password" id="passwordInput" placeholder="Password (optional, for demo)" maxlength="20">
+    <button class="btn" onclick="doLogin()">🚀 Get Started</button>
+    <p class="auto-hint" id="loginHint"></p>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="appScreen">
+  <div class="topbar">
+    <div class="logo">📚 学了吗 · <span>Have You Studied?</span></div>
+    <div class="right">
+      <div class="streak" id="streakDisplay">🔥 0 days</div>
+      <span class="user-tag" id="userTag" onclick="doLogout()" title="Click to switch user"></span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="active" data-tab="dashboard">📈 Dashboard</button>
+    <button data-tab="focus">🎯 Focus Mode</button>
+    <button data-tab="resources">📚 Resources</button>
+    <button data-tab="reminders">⏰ Reminders</button>
+  </div>
+
+  <main>
+    <!-- DASHBOARD -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-box"><div class="val" id="statToday">0m</div><div class="lbl">Today's Focus</div></div>
+        <div class="stat-box"><div class="val" id="statWeek">0h</div><div class="lbl">This Week</div></div>
+        <div class="stat-box"><div class="val" id="statSessions">0</div><div class="lbl">Sessions</div></div>
+        <div class="stat-box"><div class="val" id="statResources">0</div><div class="lbl">Resources Saved</div></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin-bottom:0;">📅 Last 7 Days</h3>
+          <button class="btn btn-accent btn-sm" id="permBtn" onclick="requestPermission()" style="display:none;">🔔 Enable Desktop Notifications</button>
+        </div>
+        <div id="weeklyBars"></div>
+      </div>
+      <div class="card">
+        <h3>🏆 Achievements</h3>
+        <div id="achievements" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- FOCUS MODE -->
+    <div class="tab-panel" id="tab-focus">
+      <div class="card" style="text-align:center;">
+        <h3 style="justify-content:center;">🎯 Focus Timer</h3>
+        <div class="focus-preset">
+          <button data-min="25" class="selected">25 min</button>
+          <button data-min="45">45 min</button>
+          <button data-min="60">60 min</button>
+          <input type="number" id="customMin" placeholder="Custom" min="1" max="180" onchange="setCustomTime()" onclick="selectCustom()">
+        </div>
+        <div class="timer-circle" id="timerCircle">
+          <div class="timer-time" id="timerDisplay">25:00</div>
+          <div class="timer-label" id="timerLabel">Ready to focus</div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-primary" id="btnStart" onclick="toggleTimer()">▶ Start</button>
+          <button class="btn btn-outline" id="btnReset" onclick="resetTimer()">↺ Reset</button>
+        </div>
+        <div class="distraction-warning" id="distractionWarn">
+          ⚠️ You left the study page! Come back and focus!
+        </div>
+        <p style="font-size:13px;color:var(--gray);margin-top:12px;">
+          💡 Enable desktop notifications above to get warned even when away.
+        </p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <h3 style="justify-content:center;">📝 Today's Focus Sessions</h3>
+        <div id="todaySessions" style="font-size:14px;color:var(--gray);">No sessions yet today.</div>
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="tab-panel" id="tab-resources">
+      <div class="card">
+        <h3>➕ Add Resource</h3>
+        <div class="res-form">
+          <input type="text" id="resTitle" placeholder="Resource name">
+          <input type="url" id="resLink" placeholder="URL (https://...)">
+          <select id="resCategory">
+            <option value="📖 Course Material">📖 Course Material</option>
+            <option value="🎥 Video">🎥 Video</option>
+            <option value="📝 Notes">📝 Notes</option>
+            <option value="💻 Practice">💻 Practice</option>
+            <option value="📄 Paper">📄 Paper</option>
+            <option value="🔗 Other">🔗 Other</option>
+          </select>
+          <button class="btn btn-primary" onclick="addResource()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-header">
+          <h3 style="margin-bottom:0;">📚 My Resources</h3>
+          <select id="filterCategory" onchange="renderResources()" style="font-size:13px;">
+            <option value="all">All</option>
+            <option value="📖 Course Material">📖 Course Material</option>
+            <option value="🎥 Video">🎥 Video</option>
+            <option value="📝 Notes">📝 Notes</option>
+            <option value="💻 Practice">💻 Practice</option>
+            <option value="📄 Paper">📄 Paper</option>
+            <option value="🔗 Other">🔗 Other</option>
+          </select>
+        </div>
+        <ul class="res-list" id="resList"></ul>
+      </div>
+    </div>
+
+    <!-- REMINDERS -->
+    <div class="tab-panel" id="tab-reminders">
+      <div class="card">
+        <h3>⏰ Set Study Reminder</h3>
+        <div class="reminder-form">
+          <input type="time" id="reminderTime" value="20:00">
+          <input type="text" id="reminderLabel" placeholder="e.g. Time to study math!" style="flex:1;min-width:150px;">
+          <button class="btn btn-primary" onclick="addReminder()">Add Reminder</button>
+        </div>
+        <p style="font-size:12px;color:var(--gray);">
+          ⏱ Checks every 10 seconds. Enable desktop notifications for pop-ups!
+        </p>
+      </div>
+      <div class="card">
+        <h3>📋 My Reminders</h3>
+        <ul class="reminder-list" id="reminderList"></ul>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ═══════════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════════
+let currentUser = null;
+
+function getPrefix() {
+  return 'hys_' + (currentUser || 'anonymous') + '_';
+}
+
+function userLoad(key, def) {
+  try {
+    const v = localStorage.getItem(getPrefix() + key);
+    return v ? JSON.parse(v) : def;
+  } catch { return def; }
+}
+
+function userSave(key, val) {
+  localStorage.setItem(getPrefix() + key, JSON.stringify(val));
+}
+
+function doLogin() {
+  const name = document.getElementById('usernameInput').value.trim();
+  if (!name) { alert('Please enter a username.'); return; }
+  const pw = document.getElementById('passwordInput').value.trim(); // stored but not verified in demo
+
+  currentUser = name;
+  localStorage.setItem('hys_currentUser', name);
+  localStorage.setItem('hys_currentPw', pw || '');
+  if (!localStorage.getItem(getPrefix() + 'createdAt')) {
+    userSave('createdAt', new Date().toISOString());
+    userSave('studyLog', {});
+    userSave('resources', []);
+    userSave('reminders', []);
+  }
+  showApp();
+}
+
+function doLogout() {
+  if (confirm('Switch user? Your data is saved under "' + currentUser + '".')) {
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    currentUser = null;
+  }
+}
+
+// ═══════════════════════════════════════
+// NOTIFICATION PERMISSION
+// ═══════════════════════════════════════
+function requestPermission() {
+  if (!('Notification' in window)) {
+    alert('Your browser does not support desktop notifications. Try using Chrome or Edge.');
+    return;
+  }
+  Notification.requestPermission().then(function(perm) {
+    updatePermButton();
+    if (perm === 'granted') {
+      new Notification('✅ 学了吗 is Ready!', {
+        body: 'Desktop notifications are ON. You will get focus warnings and study reminders!',
+        requireInteraction: true
+      });
+    } else if (perm === 'denied') {
+      alert('⚠️ Notifications blocked.\n\nTo fix: click the lock/settings icon in your address bar → Site Settings → Notifications → Allow.\n\nThen refresh this page.');
+    }
+  });
+}
+
+function updatePermButton() {
+  var btn = document.getElementById('permBtn');
+  if (!btn) return;
+  if (!('Notification' in window)) {
+    btn.style.display = 'inline-block';
+    btn.textContent = '⚠️ Browser Not Supported';
+    btn.style.background = '#e76f51';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'denied') {
+    btn.style.display = 'inline-block';
+    btn.textContent = '⚠️ Notifications Blocked — Click to Fix';
+    btn.style.background = '#e76f51';
+  } else {
+    btn.style.display = 'inline-block';
+    btn.textContent = '🔔 Enable Desktop Notifications';
+    btn.style.background = '#f4a261';
+  }
+}
+
+// ═══════════════════════════════════════
+// DATA ACCESS (delegates to user-scoped)
+// ═══════════════════════════════════════
+let studyLog, resources, reminders, todayDate;
+
+function loadUserData() {
+  studyLog  = userLoad('studyLog', {});
+  resources = userLoad('resources', []);
+  reminders = userLoad('reminders', []);
+  reminderFiredToday = userLoad('reminderFired', {});
+  missedReminders  = userLoad('missedReminders', []);
+  todayDate  = new Date().toISOString().slice(0,10);
+}
+
+function saveAllUserData() {
+  userSave('studyLog', studyLog);
+  userSave('resources', resources);
+  userSave('reminders', reminders);
+  userSave('reminderFired', reminderFiredToday);
+  userSave('missedReminders', missedReminders);
+}
+
+// ═══════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════
+function bindTabs() {
+  document.querySelectorAll('.tabs button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'dashboard') refreshDashboard();
+      if (btn.dataset.tab === 'resources') renderResources();
+      if (btn.dataset.tab === 'reminders') renderReminders();
+    });
+  });
+}
+
+// ═══════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════
+function getAchievements() {
+  var ach = [];
+  var totalMins = 0;
+  Object.keys(studyLog).forEach(function(d){ totalMins += studyLog[d] || 0; });
+  var days = Object.keys(studyLog).filter(function(d){ return studyLog[d] > 0; }).length;
+  var streak = calcStreak();
+  if (totalMins >= 60)   ach.push({icon:'⭐',text:'First Hour — 1 hour total focus!'});
+  if (totalMins >= 300)  ach.push({icon:'🌟',text:'5-Hour Club — 5 hours total focus!'});
+  if (totalMins >= 600)  ach.push({icon:'💎',text:'10-Hour Champion — 10 hours!'});
+  if (streak >= 3)       ach.push({icon:'🔥',text:'3-Day Streak — Keep it up!'});
+  if (streak >= 7)       ach.push({icon:'🎯',text:'7-Day Warrior — A full week!'});
+  if (days >= 5)         ach.push({icon:'📅',text:'5 Active Days — Building habits!'});
+  if (days >= 14)        ach.push({icon:'🏅',text:'Two Weeks Strong — 14 active days!'});
+  if (resources.length >= 5)  ach.push({icon:'📚',text:'Collector — 5 resources saved!'});
+  if (resources.length >= 10) ach.push({icon:'📖',text:'Librarian — 10 resources saved!'});
+  if (reminders.length >= 3)  ach.push({icon:'⏰',text:'Planner — 3 reminders set!'});
+  return ach;
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function calcStreak() {
+  var streak = 0;
+  var d = new Date();
+  d.setDate(d.getDate() - 1);
+  for (var i = 0; i < 365; i++) {
+    var ds = d.toISOString().slice(0,10);
+    if (studyLog[ds] && studyLog[ds] > 0) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function refreshDashboard() {
+  todayDate = new Date().toISOString().slice(0,10);
+  var today = studyLog[todayDate] || 0;
+  var now = new Date();
+  var weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  var weekTotal = 0;
+  for (var i=0; i<7; i++) {
+    var ds = new Date(weekStart);
+    ds.setDate(weekStart.getDate()+i);
+    weekTotal += studyLog[ds.toISOString().slice(0,10)] || 0;
+  }
+  var allKeys = Object.keys(studyLog).filter(function(d){ return studyLog[d] > 0; });
+  var streak = calcStreak();
+
+  document.getElementById('statToday').textContent = today+'m';
+  document.getElementById('statWeek').textContent = (weekTotal/60).toFixed(1)+'h';
+  document.getElementById('statSessions').textContent = allKeys.length;
+  document.getElementById('statResources').textContent = resources.length;
+  document.getElementById('streakDisplay').textContent = '🔥 '+streak+' day'+(streak!==1?'s':'');
+
+  // Bars
+  var barsDiv = document.getElementById('weeklyBars');
+  barsDiv.innerHTML = '';
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var maxMins = Math.max(1, weekTotal);
+  for (var i=0; i<7; i++) {
+    var ds2 = new Date(weekStart);
+    ds2.setDate(weekStart.getDate()+i);
+    var dk = ds2.toISOString().slice(0,10);
+    var mins = studyLog[dk] || 0;
+    var pct = Math.round(mins/maxMins*100);
+    var isToday = dk === todayDate;
+    barsDiv.innerHTML += '<div class="bar-wrap"><div class="day" style="'+(isToday?'font-weight:700;color:var(--teal-mid)':'')+'">'+dayNames[i]+'</div><div class="bar"><div class="fill" style="width:'+pct+'%;'+(isToday?'background:var(--accent)':'')+'"></div></div><div class="mins">'+mins+'m</div></div>';
+  }
+
+  // Achievements
+  var achDiv = document.getElementById('achievements');
+  var ach = getAchievements();
+  achDiv.innerHTML = ach.length ? ach.map(function(a){
+    return '<span style="background:#fff;padding:8px 14px;border-radius:20px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.06);">'+a.icon+' '+a.text+'</span>';
+  }).join('') : '<span style="color:var(--gray);font-size:14px;">Keep studying to unlock achievements! 🏆</span>';
+}
+
+// ═══════════════════════════════════════
+// FOCUS TIMER
+// ═══════════════════════════════════════
+var timerMinutes = 25, timerSeconds = 0, timerInterval = null;
+var timerRunning = false, isBreak = false, focusStartTime = null;
+var distractionCount = 0, distractionWarnTimer = null;
+
+(function bindPresets() {
+  document.querySelectorAll('.focus-preset button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (timerRunning) return;
+      document.querySelectorAll('.focus-preset button').forEach(function(b){b.classList.remove('selected');});
+      btn.classList.add('selected');
+      timerMinutes = parseInt(btn.dataset.min);
+      timerSeconds = 0;
+      document.getElementById('customMin').value = '';
+      updateTimerDisplay();
+    });
+  });
+})();
+
+function selectCustom() {
+  if (timerRunning) return;
+  document.querySelectorAll('.focus-preset button').forEach(function(b){b.classList.remove('selected');});
+}
+
+function setCustomTime() {
+  if (timerRunning) return;
+  var val = parseInt(document.getElementById('customMin').value);
+  if (val && val >= 1 && val <= 180) {
+    document.querySelectorAll('.focus-preset button').forEach(function(b){b.classList.remove('selected');});
+    timerMinutes = val; timerSeconds = 0;
+    updateTimerDisplay();
+    document.getElementById('timerLabel').textContent = 'Custom — '+val+' min';
+  }
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent =
+    String(timerMinutes).padStart(2,'0')+':'+String(timerSeconds).padStart(2,'0');
+}
+
+function logStudyMinutes(mins) {
+  if (mins <= 0) return;
+  todayDate = new Date().toISOString().slice(0,10);
+  studyLog[todayDate] = (studyLog[todayDate] || 0) + mins;
+  saveAllUserData();
+  refreshDashboard();
+  renderTodaySessions();
+}
+
+function toggleTimer() {
+  if (timerRunning) { pauseTimer(); return; }
+  startTimer();
+}
+
+function startTimer() {
+  timerRunning = true; isBreak = false; distractionCount = 0;
+  focusStartTime = Date.now();
+  var circle = document.getElementById('timerCircle');
+  circle.classList.add('running'); circle.classList.remove('break');
+  document.getElementById('timerLabel').textContent = 'Focusing... Stay on this page!';
+  document.getElementById('btnStart').textContent = '⏸ Pause';
+  document.getElementById('btnStart').className = 'btn btn-accent';
+  document.getElementById('distractionWarn').classList.remove('show');
+
+  timerInterval = setInterval(function() {
+    if (timerSeconds === 0 && timerMinutes === 0) { finishSession(); return; }
+    if (timerSeconds === 0) { timerMinutes--; timerSeconds = 59; }
+    else { timerSeconds--; }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function pauseTimer() {
+  var elapsedMin = focusStartTime ? Math.floor((Date.now() - focusStartTime) / 60000) : 0;
+  logStudyMinutes(elapsedMin);
+  timerRunning = false;
+  clearInterval(timerInterval); timerInterval = null;
+  clearTimeout(distractionWarnTimer);
+  document.getElementById('timerCircle').classList.remove('running');
+  document.getElementById('timerLabel').textContent = elapsedMin > 0 ? 'Paused — +'+elapsedMin+' min logged! ✅' : 'Paused (< 1 min)';
+  document.getElementById('btnStart').textContent = '▶ Resume';
+  document.getElementById('btnStart').className = 'btn btn-primary';
+  document.getElementById('distractionWarn').classList.remove('show');
+}
+
+function resetTimer() {
+  if (timerRunning && focusStartTime) {
+    var elapsedMin = Math.floor((Date.now() - focusStartTime) / 60000);
+    logStudyMinutes(elapsedMin);
+  }
+  clearInterval(timerInterval); timerInterval = null;
+  clearTimeout(distractionWarnTimer);
+  timerRunning = false; isBreak = false; focusStartTime = null; distractionCount = 0;
+  var sel = document.querySelector('.focus-preset button.selected');
+  timerMinutes = sel ? parseInt(sel.dataset.min) : 25;
+  timerSeconds = 0;
+  updateTimerDisplay();
+  document.getElementById('timerCircle').classList.remove('running','break');
+  document.getElementById('timerLabel').textContent = 'Ready to focus';
+  document.getElementById('btnStart').textContent = '▶ Start';
+  document.getElementById('btnStart').className = 'btn btn-primary';
+  document.getElementById('distractionWarn').classList.remove('show');
+}
+
+function finishSession() {
+  clearInterval(timerInterval); timerInterval = null;
+  var elapsedMin = focusStartTime ? Math.floor((Date.now() - focusStartTime) / 60000) : 0;
+  logStudyMinutes(elapsedMin);
+  isBreak = true;
+  timerMinutes = 5; timerSeconds = 0;
+  updateTimerDisplay();
+  var circle = document.getElementById('timerCircle');
+  circle.classList.remove('running'); circle.classList.add('break');
+  document.getElementById('timerLabel').textContent = 'Done! +'+elapsedMin+' min 🎉 Break ☕';
+  document.getElementById('btnStart').textContent = '▶ Start Break';
+  document.getElementById('btnStart').className = 'btn btn-primary';
+  timerRunning = false;
+  clearTimeout(distractionWarnTimer);
+  document.getElementById('distractionWarn').classList.remove('show');
+
+  if (Notification.permission === 'granted') {
+    new Notification('🎉 Session Complete! — 学了吗', {
+      body: 'You studied for '+elapsedMin+' minutes. Take a 5-min break ☕',
+      requireInteraction: true,
+      tag: 'focus-done'
+    });
+  }
+  refreshDashboard();
+  renderTodaySessions();
+}
+
+// Desktop distraction notification
+function triggerDistractionWarn() {
+  if (!timerRunning) return;
+  distractionCount++;
+  var warnEl = document.getElementById('distractionWarn');
+  warnEl.classList.add('show');
+  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
+  clearTimeout(distractionWarnTimer);
+  distractionWarnTimer = setTimeout(function(){ warnEl.classList.remove('show'); }, 10000);
+
+  if (Notification.permission === 'granted') {
+    new Notification('⚠️ Focus Break! — 学了吗', {
+      body: 'You left the study page! ('+distractionCount+' time'+(distractionCount>1?'s':'')+')\nCome back and focus! 🎯',
+      requireInteraction: true,
+      tag: 'distraction'
+    });
+  }
+
+  // Flash title
+  var orig = document.title, flashOn = true;
+  var fi = setInterval(function() {
+    document.title = flashOn ? '⚠️ COME BACK! — 学了吗' : orig;
+    flashOn = !flashOn;
+  }, 800);
+  setTimeout(function(){ clearInterval(fi); document.title = orig; }, 6000);
+}
+
+document.addEventListener('visibilitychange', function() {
+  if (timerRunning && document.hidden) triggerDistractionWarn();
+});
+window.addEventListener('blur', function() {
+  if (timerRunning) triggerDistractionWarn();
+});
+
+function renderTodaySessions() {
+  todayDate = new Date().toISOString().slice(0,10);
+  var today = studyLog[todayDate] || 0;
+  document.getElementById('todaySessions').innerHTML = today > 0
+    ? '🎉 You\'ve focused for <strong>'+today+' minutes</strong> today! Keep going!'
+    : 'No sessions yet today. Start a focus timer! 🎯';
+}
+
+// ═══════════════════════════════════════
+// RESOURCES
+// ═══════════════════════════════════════
+function addResource() {
+  var title = document.getElementById('resTitle').value.trim();
+  var link  = document.getElementById('resLink').value.trim();
+  var cat   = document.getElementById('resCategory').value;
+  if (!title || !link) { alert('Please fill in both title and URL.'); return; }
+  resources.push({ id: Date.now(), title: title, link: link, category: cat, added: todayDate });
+  saveAllUserData();
+  document.getElementById('resTitle').value = '';
+  document.getElementById('resLink').value = '';
+  renderResources();
+  refreshDashboard();
+}
+
+function deleteResource(id) {
+  resources = resources.filter(function(r){ return r.id !== id; });
+  saveAllUserData();
+  renderResources();
+  refreshDashboard();
+}
+
+function renderResources() {
+  var filter = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
+  var filtered = filter === 'all' ? resources : resources.filter(function(r){ return r.category === filter; });
+  var list = document.getElementById('resList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>No resources yet. Add your first one!</p></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(r) {
+    return '<li><div><span class="rtitle">'+r.title+'</span> <span class="rcat">'+r.category+'</span> <a class="rlink" href="'+r.link+'" target="_blank" rel="noopener">🔗 Open</a></div><button class="btn btn-danger btn-sm" onclick="deleteResource('+r.id+')">🗑</button></li>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// REMINDERS
+// ═══════════════════════════════════════
+var reminderFiredToday = {};
+var missedReminders = [];
+
+function addReminder() {
+  var time = document.getElementById('reminderTime').value;
+  var label = document.getElementById('reminderLabel').value.trim() || 'Time to study!';
+  if (!time) { alert('Please set a time.'); return; }
+  reminders.push({ id: Date.now(), time: time, label: label, enabled: true });
+  saveAllUserData();
+  document.getElementById('reminderLabel').value = '';
+  renderReminders();
+}
+
+function toggleReminder(id) {
+  reminders.forEach(function(r){ if (r.id === id) r.enabled = !r.enabled; });
+  saveAllUserData();
+  renderReminders();
+}
+
+function deleteReminder(id) {
+  reminders = reminders.filter(function(r){ return r.id !== id; });
+  saveAllUserData();
+  renderReminders();
+}
+
+function renderReminders() {
+  var list = document.getElementById('reminderList');
+  if (!reminders.length) {
+    list.innerHTML = '<div class="empty-state"><div class="eicon">⏰</div><p>No reminders set. Add one!</p></div>';
+    return;
+  }
+  list.innerHTML = reminders.map(function(r) {
+    return '<li><div><span class="rtime">'+r.time+'</span> <span class="rlabel">'+r.label+'</span> <span class="rstatus '+(r.enabled?'on':'off')+'">'+(r.enabled?'ON':'OFF')+'</span></div><div style="display:flex;gap:8px;"><button class="btn btn-sm '+(r.enabled?'btn-outline':'btn-primary')+'" onclick="toggleReminder('+r.id+')">'+(r.enabled?'Pause':'Enable')+'</button><button class="btn btn-sm btn-danger" onclick="deleteReminder('+r.id+')">🗑</button></div></li>';
+  }).join('');
+}
+
+function checkReminders() {
+  var now = new Date();
+  var ct = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  reminders.forEach(function(r) {
+    if (!r.enabled) return;
+    if (r.time === ct && reminderFiredToday[r.id] !== ct) {
+      reminderFiredToday[r.id] = ct;
+      if (Notification.permission === 'granted') {
+        new Notification('🔔 Time to Study! — 学了吗', {
+          body: r.label,
+          requireInteraction: true,
+          tag: 'reminder-'+r.id
+        });
+      } else {
+        missedReminders.push({ label: r.label, time: ct });
+      }
+    }
+  });
+  updateMissedBadge();
+  saveAllUserData();
+}
+setInterval(checkReminders, 10000);
+
+function updateMissedBadge() {
+  var tabBtn = document.querySelector('[data-tab="reminders"]');
+  if (!tabBtn) return;
+  var ex = tabBtn.querySelector('.badge');
+  if (ex) ex.remove();
+  if (missedReminders.length > 0) {
+    var badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.style.cssText = 'background:#e76f51;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;';
+    badge.textContent = missedReminders.length;
+    tabBtn.appendChild(badge);
+  }
+}
+
+document.querySelector('[data-tab="reminders"]').addEventListener('click', function() {
+  missedReminders = [];
+  updateMissedBadge();
+  saveAllUserData();
+});
+
+// ═══════════════════════════════════════
+// APP INIT
+// ═══════════════════════════════════════
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('userTag').textContent = '👤 ' + currentUser;
+  loadUserData();
+  updatePermButton();
+  refreshDashboard();
+  renderResources();
+  renderReminders();
+  renderTodaySessions();
+  updateTimerDisplay();
+  // Check if stored reminders need to fire
+  checkReminders();
+}
+
+function init() {
+  var savedUser = localStorage.getItem('hys_currentUser');
+  if (savedUser) {
+    currentUser = savedUser;
+    document.getElementById('usernameInput').value = savedUser;
+    var savedPw = localStorage.getItem('hys_currentPw') || '';
+    document.getElementById('passwordInput').value = savedPw;
+    document.getElementById('loginHint').textContent = '👋 Welcome back, ' + savedUser + '! Click to continue.';
+    // Auto-login after a brief delay so user can see the welcome
+    // If they click sooner, doLogin handles it
+    document.getElementById('usernameInput').focus();
+  }
+  bindTabs();
+}
+
+init();
+</script>
+
+</body>
+</html>
