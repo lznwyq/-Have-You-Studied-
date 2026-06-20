@@ -189,7 +189,6 @@
   <div class="topbar">
     <div class="logo">📚 学了吗 · <span>Have You Studied?</span></div>
     <div class="right">
-      <div class="streak" id="streakDisplay">🔥 0 days</div>
       <span class="user-tag" id="userTag" onclick="doLogout()" title="Click to switch user"></span>
     </div>
   </div>
@@ -208,7 +207,7 @@
         <div class="stat-box"><div class="val" id="statToday">0m</div><div class="lbl">Today's Focus</div></div>
         <div class="stat-box"><div class="val" id="statWeek">0h</div><div class="lbl">This Week</div></div>
         <div class="stat-box"><div class="val" id="statSessions">0</div><div class="lbl">Sessions</div></div>
-        <div class="stat-box"><div class="val" id="statResources">0</div><div class="lbl">Resources Saved</div></div>
+        <div class="stat-box"><div class="val" id="statDistractions">0</div><div class="lbl">Today's Distractions</div></div>
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -435,19 +434,21 @@ function updatePermButton() {
 // ═══════════════════════════════════════
 // DATA ACCESS (delegates to user-scoped)
 // ═══════════════════════════════════════
-let studyLog, resources, reminders, todayDate;
+let studyLog, distractionLog, resources, reminders, todayDate;
 
 function loadUserData() {
-  studyLog  = userLoad('studyLog', {});
-  resources = userLoad('resources', []);
-  reminders = userLoad('reminders', []);
+  studyLog       = userLoad('studyLog', {});
+  distractionLog = userLoad('distractionLog', {});
+  resources      = userLoad('resources', []);
+  reminders      = userLoad('reminders', []);
   reminderFiredToday = userLoad('reminderFired', {});
-  missedReminders  = userLoad('missedReminders', []);
+  missedReminders   = userLoad('missedReminders', []);
   todayDate  = new Date().toISOString().slice(0,10);
 }
 
 function saveAllUserData() {
   userSave('studyLog', studyLog);
+  userSave('distractionLog', distractionLog);
   userSave('resources', resources);
   userSave('reminders', reminders);
   userSave('reminderFired', reminderFiredToday);
@@ -526,9 +527,8 @@ function refreshDashboard() {
   document.getElementById('statToday').textContent = today+'m';
   document.getElementById('statWeek').textContent = (weekTotal/60).toFixed(1)+'h';
   document.getElementById('statSessions').textContent = allKeys.length;
-  document.getElementById('statResources').textContent = resources.length;
-  document.getElementById('streakDisplay').textContent = '🔥 '+streak+' day'+(streak!==1?'s':'');
-
+  var todayDistractions = distractionLog[todayDate] || 0;
+  document.getElementById('statDistractions').textContent = todayDistractions;
   // Bars
   var barsDiv = document.getElementById('weeklyBars');
   barsDiv.innerHTML = '';
@@ -702,6 +702,12 @@ function doDistractionAlert() {
   if (!timerRunning) return;
   if (!document.hidden && document.hasFocus()) return;
   distractionCount++;
+  // Save to daily log
+  todayDate = new Date().toISOString().slice(0,10);
+  distractionLog[todayDate] = (distractionLog[todayDate] || 0) + 1;
+  saveAllUserData();
+  refreshDashboard();
+
   var s = (distractionCount > 1) ? 's' : '';
   var w = document.getElementById('distractionWarn');
   w.classList.add('show');
@@ -750,9 +756,14 @@ function checkDistraction() {
 function renderTodaySessions() {
   todayDate = new Date().toISOString().slice(0,10);
   var today = studyLog[todayDate] || 0;
-  document.getElementById('todaySessions').innerHTML = today > 0
-    ? '🎉 You\'ve focused for <strong>'+today+' minutes</strong> today! Keep going!'
+  var distToday = distractionLog[todayDate] || 0;
+  var html = today > 0
+    ? '🎉 You\'ve focused for <strong>'+today+' minutes</strong> today!'
     : 'No sessions yet today. Start a focus timer! 🎯';
+  if (distToday > 0) {
+    html += ' &nbsp;|&nbsp; ⚠️ <strong>'+distToday+' distraction'+(distToday>1?'s':'')+'</strong> caught!';
+  }
+  document.getElementById('todaySessions').innerHTML = html;
 }
 
 // ═══════════════════════════════════════
