@@ -689,28 +689,21 @@ function finishSession() {
   renderTodaySessions();
 }
 
-// ── Distraction Detection ──
-// Strategy: event-driven (immediate) + polling (backup when tab is backgrounded)
-function fireDistractionNotification() {
+// ── Distraction Detection: bare, immediate, no wrappers ──
+function doDistractionAlert() {
   if (!timerRunning) return;
+  if (document.hidden === false && document.hasFocus()) return; // false alarm
   distractionCount++;
-  var s = (distractionCount > 1) ? 's' : '';
-
-  // In-page warning
-  var warnEl = document.getElementById('distractionWarn');
-  warnEl.classList.add('show');
-  warnEl.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
-
-  // Desktop notification — fires NOW before Chrome throttles the tab
+  var w = document.getElementById('distractionWarn');
+  w.classList.add('show');
+  w.innerHTML = '⚠️ Warning #'+distractionCount+': You left the study page!';
   if (Notification.permission === 'granted') {
     new Notification('⚠️ Focus Break! — 学了吗', {
-      body: 'Come back and focus! ('+distractionCount+' time'+s+') 🎯',
+      body: 'Come back and focus! ('+distractionCount+' time'+(distractionCount>1?'s':'')+') 🎯',
       requireInteraction: true,
       tag: 'distraction'
     });
   }
-
-  // Flash title
   if (!window._flashInterval) {
     var orig = document.title, on = true;
     window._flashInterval = setInterval(function() {
@@ -718,31 +711,27 @@ function fireDistractionNotification() {
       on = !on;
     }, 800);
     setTimeout(function() {
-      clearInterval(window._flashInterval);
-      window._flashInterval = null;
+      clearInterval(window._flashInterval); window._flashInterval = null;
       document.title = orig;
     }, 6000);
   }
 }
-
-// IMMEDIATE trigger when tab loses visibility or focus
+// Both tab-switch AND app-switch
 document.addEventListener('visibilitychange', function() {
-  if (timerRunning && document.hidden) fireDistractionNotification();
+  if (timerRunning && document.hidden) doDistractionAlert();
 });
 window.addEventListener('blur', function() {
-  if (timerRunning) fireDistractionNotification();
-});
-window.addEventListener('pagehide', function() {
-  if (timerRunning) fireDistractionNotification();
+  // blur fires when clicking away — slight delay to check if page actually hidden
+  setTimeout(function() {
+    if (timerRunning && (document.hidden || !document.hasFocus())) doDistractionAlert();
+  }, 100);
 });
 
-// Backup polling inside timer tick (handles edge cases, throttled by Chrome)
-var lastDistractionCheck = 0;
+// Fallback: every timer tick also checks (runs slower in background)
 function checkDistraction() {
-  var now = Date.now();
-  if (now - lastDistractionCheck < 5000) return;
-  lastDistractionCheck = now;
-  if (timerRunning && document.hidden) fireDistractionNotification();
+  if (!timerRunning || !document.hidden) return;
+  // Already handled by visibilitychange above; this is just backup
+  // The global reminder interval also checks separately
 }
 
 function renderTodaySessions() {
