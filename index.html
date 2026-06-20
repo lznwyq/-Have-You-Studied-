@@ -624,6 +624,7 @@ function startTimer() {
     else { timerSeconds--; }
     updateTimerDisplay();
   }, 1000);
+  startDistractionPoll();
 }
 
 function pauseTimer() {
@@ -637,6 +638,7 @@ function pauseTimer() {
   document.getElementById('btnStart').textContent = '▶ Resume';
   document.getElementById('btnStart').className = 'btn btn-primary';
   document.getElementById('distractionWarn').classList.remove('show');
+  stopDistractionPoll();
 }
 
 function resetTimer() {
@@ -656,6 +658,7 @@ function resetTimer() {
   document.getElementById('btnStart').textContent = '▶ Start';
   document.getElementById('btnStart').className = 'btn btn-primary';
   document.getElementById('distractionWarn').classList.remove('show');
+  stopDistractionPoll();
 }
 
 function finishSession() {
@@ -673,6 +676,7 @@ function finishSession() {
   timerRunning = false;
   clearTimeout(distractionWarnTimer);
   document.getElementById('distractionWarn').classList.remove('show');
+  stopDistractionPoll();
 
   if (Notification.permission === 'granted') {
     new Notification('🎉 Session Complete! — 学了吗', {
@@ -712,12 +716,26 @@ function triggerDistractionWarn() {
   setTimeout(function(){ clearInterval(fi); document.title = orig; }, 6000);
 }
 
+// ── Distraction Detection: event + polling (double insurance) ──
 document.addEventListener('visibilitychange', function() {
   if (timerRunning && document.hidden) triggerDistractionWarn();
 });
 window.addEventListener('blur', function() {
   if (timerRunning) triggerDistractionWarn();
 });
+// Polling: check every 2 seconds whether user left — catches edge cases
+var distractionPoll = null;
+function startDistractionPoll() {
+  stopDistractionPoll();
+  distractionPoll = setInterval(function() {
+    if (timerRunning && (document.hidden || !document.hasFocus())) {
+      triggerDistractionWarn();
+    }
+  }, 3000);
+}
+function stopDistractionPoll() {
+  if (distractionPoll) { clearInterval(distractionPoll); distractionPoll = null; }
+}
 
 function renderTodaySessions() {
   todayDate = new Date().toISOString().slice(0,10);
